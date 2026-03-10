@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="UAE Tax">
+<title>UAE Tax Regulatory Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f4f1ec; color: #2c2416; min-height: 100vh; min-height: -webkit-fill-available; overflow: hidden; display: flex; }
+
+  /* ── Scrollbars ───────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d8d0c4; border-radius: 3px; }
+
+  /* ── Sidebar ──────────────────────────────────────────── */
+  #sidebar {
+    width: 252px; flex-shrink: 0; background: #faf8f4;
+    border-right: 1.5px solid #e8e2d8; display: flex;
+    flex-direction: column; height: 100vh; height: -webkit-fill-available; overflow: hidden;
+    box-shadow: 2px 0 16px rgba(44,36,22,.05);
+  }
+  .sidebar-header { padding: 22px 22px 18px; border-bottom: 1px solid #e8e2d8; }
+  .logo-row { display: flex; align-items: center; gap: 11px; margin-bottom: 16px; }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg,#e0b878,#c89a30);
+    border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; color: #fff; font-weight: 900;
+  }
+  .logo-title { color: #7a5a00; font-family: 'Lora', Georgia, serif; font-size: 14px; font-weight: 700; }
+  .logo-sub { color: #c4b8a8; font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .search-wrap { position: relative; }
+  .search-wrap span { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #c4b8a8; font-size: 13px; pointer-events: none; }
+  .search-wrap input { width: 100%; padding: 8px 8px 8px 28px; background: #f4f1ec; border: 1.5px solid #e8e2d8; border-radius: 8px; color: #2c2416; font-size: 12px; outline: none; font-family: 'DM Sans', sans-serif; }
+  .search-wrap input::placeholder { color: #c4b8a8; }
+
+  /* ── AI Search Button ─────────────────────────────────── */
+  .ai-search-btn {
+    width: 100%; display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px; border-radius: 10px; border: 1.5px solid #f0cc88;
+    cursor: pointer; background: linear-gradient(135deg,#fffdf5,#fff8e8);
+    font-family: 'DM Sans', sans-serif; margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(200,154,48,.15); transition: all .2s;
+  }
+  .ai-search-btn:hover { box-shadow: 0 4px 14px rgba(200,154,48,.3); border-color: #c89a30; transform: translateY(-1px); }
+  .ai-search-btn .ai-spark { font-size: 16px; }
+  .ai-search-btn .ai-label { font-size: 12px; font-weight: 700; color: #7a5a00; }
+  .ai-search-btn .ai-badge { margin-left: auto; font-size: 9px; font-weight: 800; letter-spacing: .8px; color: #c89a30; text-transform: uppercase; background: rgba(200,154,48,.15); padding: 2px 7px; border-radius: 10px; }
+
+  /* ── AI Drawer ────────────────────────────────────────── */
+  #ai-drawer {
+    position: fixed; top: 0; right: -520px; width: 480px; height: 100vh;
+    background: #faf8f4; border-left: 1.5px solid #e8e2d8;
+    box-shadow: -4px 0 32px rgba(44,36,22,.12);
+    display: flex; flex-direction: column; z-index: 1000;
+    transition: right .35s cubic-bezier(.4,0,.2,1);
+    font-family: 'DM Sans', sans-serif;
+  }
+  #ai-drawer.open { right: 0; }
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(44,36,22,.25);
+    z-index: 999; opacity: 0; pointer-events: none;
+    transition: opacity .3s;
+  }
+  .drawer-overlay.show { opacity: 1; pointer-events: all; }
+  .drawer-header {
+    padding: 20px 22px 16px; border-bottom: 1px solid #e8e2d8;
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+  .drawer-icon { width: 36px; height: 36px; background: linear-gradient(135deg,#e0b878,#c89a30); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: #fff; flex-shrink: 0; }
+  .drawer-title { font-family: 'Lora', Georgia, serif; font-size: 15px; font-weight: 700; color: #2c2416; }
+  .drawer-sub { font-size: 10px; color: #9c8e7e; margin-top: 1px; }
+  .drawer-close { margin-left: auto; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #e8e2d8; background: none; cursor: pointer; color: #9c8e7e; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .drawer-close:hover { background: #f0eae0; color: #2c2416; }
+
+  /* ── Chat messages ────────────────────────────────────── */
+  #chat-messages {
+    flex: 1; overflow-y: auto; padding: 18px 22px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .msg-row { display: flex; gap: 10px; align-items: flex-start; }
+  .msg-row.user { flex-direction: row-reverse; }
+  .msg-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .msg-avatar.ai { background: linear-gradient(135deg,#e0b878,#c89a30); color: #fff; }
+  .msg-avatar.user { background: #e8e2d8; color: #6b5e4e; }
+  .msg-bubble { max-width: 85%; padding: 12px 15px; border-radius: 14px; font-size: 13px; line-height: 1.7; }
+  .msg-bubble.ai { background: #fff; border: 1.5px solid #e8e2d8; color: #2c2416; font-family: 'Lora', Georgia, serif; border-radius: 4px 14px 14px 14px; box-shadow: 0 1px 6px rgba(44,36,22,.06); }
+  .msg-bubble.user { background: linear-gradient(135deg,#c89a30,#e0b878); color: #fff; font-weight: 600; border-radius: 14px 4px 14px 14px; }
+  .msg-bubble.ai .cite-tag { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .5px; color: #c89a30; background: rgba(200,154,48,.12); border: 1px solid rgba(200,154,48,.3); border-radius: 4px; padding: 1px 5px; margin: 2px 1px; cursor: pointer; white-space: nowrap; }
+  .msg-bubble.ai .cite-tag:hover { background: rgba(200,154,48,.25); }
+  .typing-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #c4b8a8; margin: 0 2px; animation: bounce .9s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: .15s; }
+  .typing-dot:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  /* ── Suggested queries ────────────────────────────────── */
+  .suggestions-wrap { padding: 0 22px 14px; flex-shrink: 0; }
+  .suggestions-label { font-size: 9px; letter-spacing: 1.5px; color: #c4b8a8; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; }
+  .suggestions-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .suggestion-chip { background: #fff; border: 1.5px solid #e8e2d8; border-radius: 20px; padding: 5px 12px; font-size: 11px; color: #6b5e4e; cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif; }
+  .suggestion-chip:hover { border-color: #c89a30; color: #7a5a00; background: #fffdf5; }
+
+  /* ── Chat input area ──────────────────────────────────── */
+  .chat-input-area { padding: 14px 22px 20px; border-top: 1px solid #e8e2d8; flex-shrink: 0; }
+  .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+  #chat-input {
+    flex: 1; padding: 11px 14px; background: #f4f1ec;
+    border: 1.5px solid #e8e2d8; border-radius: 12px;
+    color: #2c2416; font-size: 13px; outline: none;
+    font-family: 'DM Sans', sans-serif; resize: none;
+    max-height: 100px; line-height: 1.5; transition: border-color .2s;
+  }
+  #chat-input:focus { border-color: #c89a30; }
+  #chat-input::placeholder { color: #c4b8a8; }
+  #send-btn {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg,#c89a30,#e0b878);
+    border: none; cursor: pointer; color: #fff; font-size: 17px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s; box-shadow: 0 2px 8px rgba(200,154,48,.3);
+  }
+  #send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 14px rgba(200,154,48,.4); }
+  #send-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .chat-disclaimer { font-size: 10px; color: #c4b8a8; margin-top: 8px; text-align: center; }
+
+  #nav-list { flex: 1; overflow-y: auto; padding: 10px; }
+  .nav-section-label { font-size: 9px; letter-spacing: 2px; color: #c4b8a8; text-transform: uppercase; padding: 14px 12px 6px; font-weight: 800; }
+  .nav-btn {
+    width: 100%; display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px; border-radius: 8px; border: none; cursor: pointer;
+    margin-bottom: 1px; text-align: left; background: transparent;
+    border-left: 2px solid transparent; transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-btn:hover { background: rgba(200,154,48,.08); }
+  .nav-btn.active { border-left-color: var(--accent); background: rgba(var(--accent-rgb),.1); }
+  .nav-btn .nav-icon { font-size: 13px; width: 18px; text-align: center; flex-shrink: 0; color: #c4b8a8; }
+  .nav-btn.active .nav-icon { color: var(--accent); }
+  .nav-btn .nav-label { font-size: 11.5px; font-weight: 400; color: #9c8e7e; }
+  .nav-btn.active .nav-label { font-weight: 700; color: #2c2416; }
+  .sidebar-footer { padding: 12px 20px; border-top: 1px solid #e8e2d8; display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #3aaa6a; }
+  .sidebar-footer span { font-size: 10px; color: #c4b8a8; }
+
+  /* ── Main ─────────────────────────────────────────────── */
+  #main { flex: 1; overflow-y: auto; padding: 36px 44px 60px; }
+  .page { display: none; max-width: 820px; }
+  .page.active { display: block; }
+
+  /* ── Typography helpers ───────────────────────────────── */
+  .serif { font-family: 'Lora', Georgia, serif; }
+  .page-title { font-family: 'Lora', Georgia, serif; font-size: 24px; color: #2c2416; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { color: #9c8e7e; font-size: 12px; margin-bottom: 20px; }
+  .section-divider { display: flex; align-items: center; gap: 10px; margin: 24px 0 18px; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: #f0eae0; }
+  .section-divider span { color: #c4b8a8; font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── Tag pill ─────────────────────────────────────────── */
+  .tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .8px; padding: 3px 9px; border-radius: 20px; border: 1.5px solid; text-transform: uppercase; white-space: nowrap; margin: 2px; }
+
+  /* ── Card base ────────────────────────────────────────── */
+  .card { background: #fff; border: 1.5px solid #e8e2d8; border-radius: 14px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(44,36,22,.06); }
+  .card-inner { padding: 20px 22px; }
+  .card-code { font-size: 9.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px; font-family: monospace; }
+  .card-title { font-family: 'Lora', Georgia, serif; font-size: 14.5px; font-weight: 700; color: #2c2416; line-height: 1.45; margin-bottom: 10px; }
+  .card-summary { color: #6b5e4e; font-size: 12.5px; line-height: 1.8; font-family: 'Lora', Georgia, serif; }
+  .card-toggle { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #f4f1ec; border: 1.5px solid #e8e2d8; color: #c4b8a8; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+  .card-toggle.open { background: rgba(var(--accent-rgb),.1); border-color: var(--accent); color: var(--accent); }
+  .card-expand { border-top: 1px solid #f0eae0; }
+  .articles-section { padding: 16px 22px; border-bottom: 1px solid #f0eae0; }
+  .clarif-section { padding: 16px 22px; }
+  .mini-label { font-size: 9.5px; letter-spacing: 1.5px; color: #c4b8a8; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; }
+
+  /* ── Article block ────────────────────────────────────── */
+  .article-block { border-left: 2px solid #f0eae0; padding-left: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .2s; }
+  .article-block:hover { border-left-color: rgba(var(--accent-rgb),.5); }
+  .article-block.open { border-left-color: rgba(var(--accent-rgb),.6); }
+  .article-ref-row { display: flex; align-items: center; gap: 8px; user-select: none; }
+  .article-ref { font-size: 10px; font-weight: 800; letter-spacing: .8px; font-family: monospace; }
+  .article-chevron { font-size: 10px; color: #c4b8a8; }
+  .article-block.open .article-chevron { color: #9c8e7e; }
+  .article-text { color: #6b5e4e; font-size: 12.5px; line-height: 1.9; margin-top: 8px; font-family: 'Lora', Georgia, serif; display: none; }
+  .article-block.open .article-text { display: block; }
+
+  /* ── Clarification block ──────────────────────────────── */
+  .clarif-block { background: #f0faf4; border-radius: 9px; padding: 13px 15px; margin-bottom: 10px; border-left: 3px solid rgba(58,170,106,.4); }
+  .clarif-ref { color: #2a8850; font-size: 10px; font-weight: 800; letter-spacing: .8px; margin-bottom: 7px; font-family: monospace; }
+  .clarif-text { color: #6b5e4e; font-size: 12.5px; line-height: 1.85; font-family: 'Lora', Georgia, serif; }
+
+  /* ── Toggle button ────────────────────────────────────── */
+  .toggle-btn { display: inline-flex; align-items: center; gap: 8px; background: none; border: 1px solid; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .5px; font-family: 'DM Sans', sans-serif; margin-bottom: 14px; }
+
+  /* ── VAT Category cards ───────────────────────────────── */
+  .vat-header { padding: 20px 24px; border-bottom: 1px solid; }
+  .vat-icon-wrap { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1.5px solid; flex-shrink: 0; }
+  .vat-rate-badge { font-size: 14px; font-weight: 800; font-family: 'Lora', serif; padding: 2px 10px; border-radius: 20px; border: 1px solid; }
+  .key-rule-box { border-radius: 8px; padding: 10px 14px; margin-top: 10px; border: 1px solid; font-size: 11.5px; font-family: 'Lora', serif; }
+  .vat-items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 20px 24px; }
+  .supply-item { background: #f4f1ec; border-radius: 10px; border: 1px solid #f0eae0; overflow: hidden; }
+  .supply-item-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .supply-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .supply-cat-name { color: #2c2416; font-size: 12px; font-weight: 600; margin-left: 8px; }
+  .supply-chev { color: #c4b8a8; font-size: 10px; }
+  .supply-examples { padding: 0 14px 12px 28px; display: none; }
+  .supply-examples.open { display: block; }
+  .supply-example { color: #6b5e4e; font-size: 11.5px; padding: 3px 0; line-height: 1.5; font-family: 'Lora', Georgia, serif; }
+
+  /* ── Stats bar ────────────────────────────────────────── */
+  .stats-bar { display: flex; gap: 1px; border-radius: 10px; overflow: hidden; border: 1px solid #e8e2d8; margin-bottom: 24px; }
+  .stat-cell { flex: 1; background: #f4f1ec; padding: 12px 0; text-align: center; }
+  .stat-val { font-family: 'Lora', serif; font-size: 22px; font-weight: 700; }
+  .stat-label { color: #c4b8a8; font-size: 9.5px; letter-spacing: .8px; text-transform: uppercase; margin-top: 2px; }
+
+  /* ── Page header block ────────────────────────────────── */
+  .page-header-block { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .page-icon-wrap { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 1.5px solid; flex-shrink: 0; }
+
+  /* ── RCM step grid ────────────────────────────────────── */
+  .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .step-item { display: flex; gap: 14px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: #fff4e0; border: 1.5px solid #f0cc88; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #d4820a; font-size: 11px; font-weight: 800; }
+
+  /* ── Trigger card ─────────────────────────────────────── */
+  .trigger-card { background: #fff; border: 1.5px solid #e8e2d8; border-radius: 14px; overflow: hidden; margin-bottom: 12px; border-left: 4px solid #d4820a; box-shadow: 0 2px 10px rgba(44,36,22,.04); }
+  .trigger-btn { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px; background: none; border: none; cursor: pointer; text-align: left; font-family: 'DM Sans', sans-serif; }
+  .trigger-law { font-size: 9.5px; color: #d4820a; font-weight: 800; letter-spacing: 1px; font-family: monospace; margin-bottom: 4px; }
+  .trigger-title { color: #2c2416; font-size: 14px; font-weight: 700; font-family: 'Lora', Georgia, serif; }
+  .trigger-expand { padding: 0 20px 18px; border-top: 1px solid #f0eae0; display: none; }
+  .trigger-expand.open { display: block; }
+  .trigger-desc { color: #6b5e4e; font-size: 12.5px; line-height: 1.85; margin: 14px 0; font-family: 'Lora', Georgia, serif; }
+  .examples-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+  .example-item { display: flex; gap: 8px; align-items: flex-start; }
+  .example-dot { color: #d4820a; font-size: 8px; margin-top: 4px; flex-shrink: 0; }
+  .example-text { color: #6b5e4e; font-size: 12px; line-height: 1.6; font-family: 'Lora', Georgia, serif; }
+  .risk-box { background: #fff8e8; border-radius: 8px; padding: 10px 14px; border-left: 3px solid #f0d898; }
+  .risk-label { font-size: 9.5px; color: #7a5a00; font-weight: 800; letter-spacing: 1px; font-family: monospace; margin-bottom: 4px; }
+  .risk-text { color: #6b5e4e; font-size: 12px; line-height: 1.7; font-family: 'Lora', Georgia, serif; }
+
+  /* ── GCC country grid ─────────────────────────────────── */
+  .gcc-status-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+  .gcc-status-card { border: 1.5px solid; border-radius: 12px; padding: 14px 16px; }
+  .country-flag { font-size: 18px; margin-bottom: 6px; }
+  .country-name { color: #2c2416; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .status-pill { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .status-dot-sm { width: 6px; height: 6px; border-radius: 50%; }
+  .country-meta { color: #6b5e4e; font-size: 11px; margin-bottom: 2px; }
+  .country-auth { color: #c4b8a8; font-size: 10px; margin-top: 4px; }
+  .vat-notes-grid { display: grid; grid-template-columns: repeat(3,1fr) 2fr; gap: 10px; margin-bottom: 20px; }
+  .vat-note-card { background: #fff; border: 1.5px solid #e8e2d8; border-radius: 10px; padding: 12px 14px; }
+  .vat-note-label { color: #c4b8a8; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .vat-note-val { font-family: 'Lora', serif; font-size: 14px; font-weight: 800; }
+  .cross-border-card { background: #fff; border: 1.5px solid #e8e2d8; border-radius: 12px; overflow: hidden; margin-bottom: 10px; border-left: 4px solid #1a7ab8; box-shadow: 0 1px 8px rgba(44,36,22,.04); }
+  .cb-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; text-align: left; }
+  .cb-title { color: #2c2416; font-size: 13px; font-weight: 700; font-family: 'Lora', Georgia, serif; }
+  .cb-expand { padding: 0 18px 16px; border-top: 1px solid #f0eae0; display: none; }
+  .cb-expand.open { display: block; }
+
+  /* ── Useful info ──────────────────────────────────────── */
+  .useful-card { background: #fff; border: 1.5px solid #e8e2d8; border-radius: 14px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(44,36,22,.05); border-left: 4px solid; }
+  .useful-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; text-align: left; }
+  .useful-title { color: #2c2416; font-size: 14px; font-weight: 700; font-family: 'Lora', Georgia, serif; margin-left: 10px; }
+  .useful-expand { padding: 0 20px 18px; display: none; }
+  .useful-expand.open { display: block; }
+  .useful-item { padding: 12px 0; border-top: 1px solid #f0eae0; }
+  .useful-item-title { color: #2c2416; font-size: 12.5px; font-weight: 700; margin-bottom: 5px; }
+  .useful-item-detail { color: #6b5e4e; font-size: 12px; line-height: 1.8; font-family: 'Lora', Georgia, serif; }
+
+  /* ── Landing page ─────────────────────────────────────── */
+  .landing-vat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+  .landing-vat-card { border: 1.5px solid; border-radius: 12px; padding: 16px 18px; }
+  .landing-rate { font-family: 'Lora', serif; font-size: 22px; font-weight: 800; margin: 6px 0 4px; }
+  .landing-desc { font-size: 10.5px; line-height: 1.6; font-family: 'Lora', Georgia, serif; opacity: .75; }
+  .landing-special-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .distinctions-card, .rates-card { background: #fff; border: 1.5px solid #e8e2d8; border-radius: 14px; padding: 22px; box-shadow: 0 2px 10px rgba(44,36,22,.04); }
+  .distinction-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0eae0; }
+  .distinction-item:last-child { border-bottom: none; }
+  .distinction-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .distinction-name { color: #2c2416; font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .distinction-detail { color: #6b5e4e; font-size: 11.5px; line-height: 1.5; font-family: 'Lora', Georgia, serif; }
+  .rate-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #f0eae0; }
+  .rate-row:last-child { border-bottom: none; }
+  .rate-label { color: #2c2416; font-size: 12px; font-weight: 600; }
+  .rate-note { color: #9c8e7e; font-size: 10.5px; }
+  .rate-val { font-family: 'Lora', serif; font-size: 20px; font-weight: 800; }
+  .disclaimer { margin-top: 24px; padding: 14px 18px; background: #f4f1ec; border-radius: 10px; border: 1px solid #f0eae0; font-size: 11px; line-height: 1.7; color: #9c8e7e; }
+
+  /* ── Biz header ───────────────────────────────────────── */
+  .biz-header-band { border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; }
+  .biz-highlight { font-size: 13px; line-height: 1.8; font-family: 'Lora', Georgia, serif; font-weight: 600; margin-bottom: 8px; }
+  .biz-law-ref { font-size: 9.5px; font-weight: 700; letter-spacing: .8px; font-family: monospace; opacity: .6; }
+
+  /* ── Search hidden ────────────────────────────────────── */
+  .search-hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ═══════════════════════════════════════════ -->
+<div id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-row">
+      <div class="logo-icon">ق</div>
+      <div>
+        <div class="logo-title">UAE Tax Library</div>
+        <div class="logo-sub">Regulatory Reference</div>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <span>⌕</span>
+      <input type="text" id="search-input" placeholder="Filter sections…" oninput="filterNav(this.value)">
+    </div>
+    <button class="ai-search-btn" onclick="openDrawer()">
+      <span class="ai-spark">✦</span>
+      <span class="ai-label">Ask AI Tax Assistant</span>
+      <span class="ai-badge">Claude</span>
+    </button>
+  </div>
+
+  <div id="nav-list">
+    <div class="nav-section-label">VAT Supply Categories</div>
+    <button class="nav-btn" data-page="landing" style="--accent:#c89a30;--accent-rgb:200,154,48" onclick="showPage('landing',this)">
+      <span class="nav-icon">◈</span><span class="nav-label">Overview</span>
+    </button>
+    <button class="nav-btn" data-page="standard" style="--accent:#e8803a;--accent-rgb:232,128,58" onclick="showPage('standard',this)">
+      <span class="nav-icon">◈</span><span class="nav-label">Standard Rated (5%)</span>
+    </button>
+    <button class="nav-btn" data-page="zero" style="--accent:#3aaa6a;--accent-rgb:58,170,106" onclick="showPage('zero',this)">
+      <span class="nav-icon">◯</span><span class="nav-label">Zero Rated (0%)</span>
+    </button>
+    <button class="nav-btn" data-page="exempt" style="--accent:#4a64d8;--accent-rgb:74,100,216" onclick="showPage('exempt',this)">
+      <span class="nav-icon">◻</span><span class="nav-label">Exempt</span>
+    </button>
+    <button class="nav-btn" data-page="outscope" style="--accent:#8a4ad8;--accent-rgb:138,74,216" onclick="showPage('outscope',this)">
+      <span class="nav-icon">◌</span><span class="nav-label">Outside Scope</span>
+    </button>
+
+    <div class="nav-section-label">Special Mechanisms</div>
+    <button class="nav-btn" data-page="rcm" style="--accent:#d4820a;--accent-rgb:212,130,10" onclick="showPage('rcm',this)">
+      <span class="nav-icon">↺</span><span class="nav-label">Reverse Charge (RCM)</span>
+    </button>
+
+    <div class="nav-section-label">GCC VAT Regulations</div>
+    <button class="nav-btn" data-page="gcc_overview" style="--accent:#1a7ab8;--accent-rgb:26,122,184" onclick="showPage('gcc_overview',this)">
+      <span class="nav-icon">◎</span><span class="nav-label">GCC Framework & Cross-Border</span>
+    </button>
+    <button class="nav-btn" data-page="gcc_ksa" style="--accent:#1a7ab8;--accent-rgb:26,122,184" onclick="showPage('gcc_ksa',this)">
+      <span class="nav-icon">🇸🇦</span><span class="nav-label">Saudi Arabia (15%)</span>
+    </button>
+    <button class="nav-btn" data-page="gcc_bahrain" style="--accent:#aa3a8a;--accent-rgb:170,58,138" onclick="showPage('gcc_bahrain',this)">
+      <span class="nav-icon">🇧🇭</span><span class="nav-label">Bahrain (10%)</span>
+    </button>
+    <button class="nav-btn" data-page="gcc_oman" style="--accent:#aa3a3a;--accent-rgb:170,58,58" onclick="showPage('gcc_oman',this)">
+      <span class="nav-icon">🇴🇲</span><span class="nav-label">Oman (5%)</span>
+    </button>
+    <button class="nav-btn" data-page="gcc_kw_qa" style="--accent:#3a7a3a;--accent-rgb:58,122,58" onclick="showPage('gcc_kw_qa',this)">
+      <span class="nav-icon">🇰🇼</span><span class="nav-label">Kuwait &amp; Qatar (Pending)</span>
+    </button>
+
+    <div class="nav-section-label">Business Natures</div>
+    <button class="nav-btn" data-page="biz_fz" style="--accent:#c89a30;--accent-rgb:200,154,48" onclick="showPage('biz_fz',this)">
+      <span class="nav-icon">◈</span><span class="nav-label">Free Zone Entities</span>
+    </button>
+    <button class="nav-btn" data-page="biz_sme" style="--accent:#2a88cc;--accent-rgb:42,136,204" onclick="showPage('biz_sme',this)">
+      <span class="nav-icon">⬡</span><span class="nav-label">SMEs &amp; Small Business</span>
+    </button>
+    <button class="nav-btn" data-page="biz_mne" style="--accent:#8844cc;--accent-rgb:136,68,204" onclick="showPage('biz_mne',this)">
+      <span class="nav-icon">⊕</span><span class="nav-label">Multinational Enterprises</span>
+    </button>
+    <button class="nav-btn" data-page="biz_re" style="--accent:#2aaa58;--accent-rgb:42,170,88" onclick="showPage('biz_re',this)">
+      <span class="nav-icon">⬛</span><span class="nav-label">Real Estate</span>
+    </button>
+    <button class="nav-btn" data-page="biz_fin" style="--accent:#cc4444;--accent-rgb:204,68,68" onclick="showPage('biz_fin',this)">
+      <span class="nav-icon">◎</span><span class="nav-label">Financial Services</span>
+    </button>
+    <button class="nav-btn" data-page="biz_pro" style="--accent:#b89a10;--accent-rgb:184,154,16" onclick="showPage('biz_pro',this)">
+      <span class="nav-icon">◉</span><span class="nav-label">Professional Services</span>
+    </button>
+    <button class="nav-btn" data-page="biz_ec" style="--accent:#2aa4bc;--accent-rgb:42,164,188" onclick="showPage('biz_ec',this)">
+      <span class="nav-icon">◇</span><span class="nav-label">E-Commerce &amp; Digital</span>
+    </button>
+    <button class="nav-btn" data-page="biz_np" style="--accent:#4aaa24;--accent-rgb:74,170,36" onclick="showPage('biz_np',this)">
+      <span class="nav-icon">△</span><span class="nav-label">Non-Profit &amp; Government</span>
+    </button>
+
+    <div class="nav-section-label">Useful Information</div>
+    <button class="nav-btn" data-page="info_reg" style="--accent:#3aaa6a;--accent-rgb:58,170,106" onclick="showPage('info_reg',this)">
+      <span class="nav-icon">⊟</span><span class="nav-label">VAT Registration</span>
+    </button>
+    <button class="nav-btn" data-page="info_inv" style="--accent:#2a88cc;--accent-rgb:42,136,204" onclick="showPage('info_inv',this)">
+      <span class="nav-icon">◈</span><span class="nav-label">Tax Invoice Requirements</span>
+    </button>
+    <button class="nav-btn" data-page="info_fil" style="--accent:#8844cc;--accent-rgb:136,68,204" onclick="showPage('info_fil',this)">
+      <span class="nav-icon">◯</span><span class="nav-label">Filing &amp; Payment</span>
+    </button>
+    <button class="nav-btn" data-page="info_inv2" style="--accent:#cc4444;--accent-rgb:204,68,68" onclick="showPage('info_inv2',this)">
+      <span class="nav-icon">◻</span><span class="nav-label">Input VAT Recovery</span>
+    </button>
+    <button class="nav-btn" data-page="info_ct" style="--accent:#b89a10;--accent-rgb:184,154,16" onclick="showPage('info_ct',this)">
+      <span class="nav-icon">⬡</span><span class="nav-label">CT Key Dates &amp; Rates</span>
+    </button>
+    <button class="nav-btn" data-page="info_pen" style="--accent:#cc4444;--accent-rgb:204,68,68" onclick="showPage('info_pen',this)">
+      <span class="nav-icon">◌</span><span class="nav-label">Penalties &amp; Compliance</span>
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="status-dot"></div>
+    <span>FTA — Updated 2024</span>
+  </div>
+</div>
+
+<!-- ══ AI DRAWER OVERLAY ═══════════════════════════════════ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<!-- ══ AI DRAWER ══════════════════════════════════════════ -->
+<div id="ai-drawer">
+  <div class="drawer-header">
+    <div class="drawer-icon">✦</div>
+    <div>
+      <div class="drawer-title">UAE Tax AI Assistant</div>
+      <div class="drawer-sub">Powered by Claude · Trained on this library's regulations</div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+
+  <div id="chat-messages">
+    <!-- Welcome message -->
+    <div class="msg-row">
+      <div class="msg-avatar ai">ق</div>
+      <div class="msg-bubble ai">
+        <strong style="color:#7a5a00;font-family:'DM Sans',sans-serif;font-size:12px">Hello! I'm your UAE Tax Assistant.</strong><br><br>
+        I can answer questions about UAE VAT, Corporate Tax, the Reverse Charge Mechanism, GCC regulations, and more — all grounded in the content of this regulatory library.<br><br>
+        Try asking me something like <em>"When does RCM apply to SaaS invoices?"</em> or <em>"What is the CT rate for a QFZP?"</em>
+      </div>
+    </div>
+  </div>
+
+  <div class="suggestions-wrap">
+    <div class="suggestions-label">Suggested Questions</div>
+    <div class="suggestions-grid">
+      <div class="suggestion-chip" onclick="askSuggestion(this)">When does RCM apply?</div>
+      <div class="suggestion-chip" onclick="askSuggestion(this)">QFZP qualifying activities</div>
+      <div class="suggestion-chip" onclick="askSuggestion(this)">KSA vs UAE VAT differences</div>
+      <div class="suggestion-chip" onclick="askSuggestion(this)">Exempt vs zero-rated supplies</div>
+      <div class="suggestion-chip" onclick="askSuggestion(this)">Input VAT on entertainment costs</div>
+      <div class="suggestion-chip" onclick="askSuggestion(this)">CT Small Business Relief rules</div>
+      <div class="suggestion-chip" onclick="askSuggestion(this)">Partial exemption apportionment</div>
+      <div class="suggestion-chip" onclick="askSuggestion(this)">Pillar Two DMTT threshold</div>
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <div class="chat-input-row">
+      <textarea id="chat-input" rows="1" placeholder="Ask any UAE tax question…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button id="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+    <div class="chat-disclaimer">For guidance only · Always verify with FTA publications · Not legal advice</div>
+  </div>
+</div>
+
+<!-- ══ MAIN ═══════════════════════════════════════════════ -->
+<div id="main">
+
+<!-- ─ LANDING ──────────────────────────────────────────── -->
+<div id="page-landing" class="page active">
+  <h1 class="page-title">UAE Tax Regulatory Library</h1>
+  <p class="page-sub">Federal Tax Authority — Select a topic from the sidebar or explore the overview below</p>
+  <div class="landing-vat-grid">
+    <div class="landing-vat-card" style="background:#fff0e8;border-color:#f4c4a0">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;color:#e8803a">◈</span><span style="color:#8a4020;font-size:12px;font-weight:700">Standard Rated</span></div>
+      <div class="landing-rate" style="color:#e8803a">5%</div>
+      <div class="landing-desc" style="color:#8a4020">VAT charged. Input VAT recoverable in full.</div>
+    </div>
+    <div class="landing-vat-card" style="background:#e8f5ee;border-color:#a8d8b8">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;color:#3aaa6a">◯</span><span style="color:#1a6640;font-size:12px;font-weight:700">Zero Rated</span></div>
+      <div class="landing-rate" style="color:#3aaa6a">0%</div>
+      <div class="landing-desc" style="color:#1a6640">No VAT charged. Input VAT still recoverable.</div>
+    </div>
+    <div class="landing-vat-card" style="background:#edf0ff;border-color:#b8c4f0">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;color:#4a64d8">◻</span><span style="color:#2a3a88;font-size:12px;font-weight:700">Exempt</span></div>
+      <div class="landing-rate" style="color:#4a64d8">N/A</div>
+      <div class="landing-desc" style="color:#2a3a88">No VAT charged. Input VAT NOT recoverable.</div>
+    </div>
+    <div class="landing-vat-card" style="background:#f8eeff;border-color:#d4b8f0">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;color:#8a4ad8">◌</span><span style="color:#5a2a88;font-size:12px;font-weight:700">Outside Scope</span></div>
+      <div class="landing-rate" style="color:#8a4ad8">—</div>
+      <div class="landing-desc" style="color:#5a2a88">Outside VAT entirely. No registration obligation.</div>
+    </div>
+  </div>
+  <div class="landing-special-grid">
+    <div class="landing-vat-card" style="background:#fff4e0;border-color:#f0cc88">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;color:#d4820a">↺</span><span style="color:#7a4a00;font-size:12px;font-weight:700">Reverse Charge (RCM)</span></div>
+      <div class="landing-desc" style="color:#7a4a00;margin-top:8px">Self-accounting VAT on imported services &amp; goods. 5 trigger scenarios covered.</div>
+    </div>
+    <div class="landing-vat-card" style="background:#e8f8ff;border-color:#88ccf0">
+      <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;color:#1a7ab8">◎</span><span style="color:#0a3a6a;font-size:12px;font-weight:700">GCC VAT Regulations</span></div>
+      <div class="landing-desc" style="color:#0a3a6a;margin-top:8px">GCC Unified Agreement + KSA, Bahrain, Oman, Kuwait &amp; Qatar country profiles.</div>
+    </div>
+  </div>
+  <div class="two-col-grid">
+    <div class="distinctions-card">
+      <div class="mini-label">Critical Distinctions</div>
+      <div class="distinction-item">
+        <div class="distinction-dot" style="background:#3aaa6a"></div>
+        <div><div class="distinction-name">Zero-rated</div><div class="distinction-detail">Input VAT recoverable — supplier benefits</div></div>
+      </div>
+      <div class="distinction-item">
+        <div class="distinction-dot" style="background:#4a64d8"></div>
+        <div><div class="distinction-name">Exempt</div><div class="distinction-detail">Input VAT blocked — permanent tax cost</div></div>
+      </div>
+      <div class="distinction-item">
+        <div class="distinction-dot" style="background:#8a4ad8"></div>
+        <div><div class="distinction-name">Outside Scope</div><div class="distinction-detail">Not a supply — no VAT obligation at all</div></div>
+      </div>
+    </div>
+    <div class="rates-card">
+      <div class="mini-label">Quick Reference — Rates</div>
+      <div class="rate-row"><div><div class="rate-label">Standard Rate</div><div class="rate-note">Default for all taxable supplies</div></div><div class="rate-val" style="color:#e8803a">5%</div></div>
+      <div class="rate-row"><div><div class="rate-label">Zero Rate</div><div class="rate-note">Exports, healthcare, education</div></div><div class="rate-val" style="color:#3aaa6a">0%</div></div>
+      <div class="rate-row"><div><div class="rate-label">Exempt</div><div class="rate-note">Residential property, financial margins</div></div><div class="rate-val" style="color:#4a64d8">N/A</div></div>
+      <div class="rate-row"><div><div class="rate-label">Corporate Tax</div><div class="rate-note">Above AED 375,000 threshold</div></div><div class="rate-val" style="color:#8844cc">9%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─ STANDARD RATED ────────────────────────────────────── -->
+<div id="page-standard" class="page">
+  <div style="background:#fff0e8;border:1.5px solid #f4c4a0;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(44,36,22,.06);">
+    <div class="vat-header" style="background:#fff0e8;border-color:#f4c4a0;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="vat-icon-wrap" style="background:rgba(232,128,58,.12);border-color:#f4c4a0;color:#e8803a;">◈</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <h2 class="serif" style="font-size:18px;color:#8a4020;font-weight:700">Standard Rated</h2>
+            <span class="vat-rate-badge" style="color:#e8803a;background:rgba(232,128,58,.12);border-color:#f4c4a0">5%</span>
+          </div>
+          <div style="color:#8a4020;font-size:10px;font-weight:700;letter-spacing:1px;opacity:.6;font-family:monospace">Article 2, Federal Decree-Law No. 8 of 2017</div>
+        </div>
+      </div>
+      <p style="color:#8a4020;font-size:12.5px;line-height:1.8;margin:14px 0 8px;font-family:'Lora',Georgia,serif;opacity:.85">Supplies of goods and services made in the UAE that are not zero-rated, exempt, or outside scope. The default VAT rate. Suppliers must charge 5% and may recover related input VAT in full.</p>
+      <div class="key-rule-box" style="background:rgba(232,128,58,.1);border-color:#f4c4a0;color:#8a4020"><strong>Key rule:</strong> Input VAT fully recoverable by VAT-registered businesses on standard-rated costs.</div>
+    </div>
+    <div class="vat-items-grid" id="items-standard"></div>
+    <div style="padding:0 24px 20px">
+      <button class="toggle-btn" style="color:#e8803a;border-color:#f4c4a0" onclick="toggleClarif('clar-standard',this)">▸ FTA Clarifications (2)</button>
+      <div id="clar-standard" style="display:none">
+        <div class="clarif-block"><div class="clarif-ref">VAT Guide VATG001</div><p class="clarif-text">A supply is standard-rated by default unless it is explicitly zero-rated, exempt, or outside scope. Taxpayers should not assume a supply is exempt without a clear legal basis.</p></div>
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-STD-001</div><p class="clarif-text">Mixed supplies: Where a single transaction includes both standard-rated and zero-rated/exempt elements, determine whether it is a composite supply (dominant element test) or a mixed supply (each element taxed separately).</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─ ZERO RATED ────────────────────────────────────────── -->
+<div id="page-zero" class="page">
+  <div style="background:#fff;border:1.5px solid #a8d8b8;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(44,36,22,.06);">
+    <div class="vat-header" style="background:#e8f5ee;border-color:#a8d8b8;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="vat-icon-wrap" style="background:rgba(58,170,106,.12);border-color:#a8d8b8;color:#3aaa6a;">◯</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <h2 class="serif" style="font-size:18px;color:#1a6640;font-weight:700">Zero Rated</h2>
+            <span class="vat-rate-badge" style="color:#3aaa6a;background:rgba(58,170,106,.12);border-color:#a8d8b8">0%</span>
+          </div>
+          <div style="color:#1a6640;font-size:10px;font-weight:700;letter-spacing:1px;opacity:.6;font-family:monospace">Article 45, Federal Decree-Law No. 8 of 2017</div>
+        </div>
+      </div>
+      <p style="color:#1a6640;font-size:12.5px;line-height:1.8;margin:14px 0 8px;font-family:'Lora',Georgia,serif;opacity:.85">Taxable supplies subject to VAT at 0%. The supplier charges no VAT but the supply remains 'taxable', meaning the supplier can register for VAT and recover input VAT on related costs. Critically different from exempt supplies.</p>
+      <div class="key-rule-box" style="background:rgba(58,170,106,.1);border-color:#a8d8b8;color:#1a6640"><strong>Key rule:</strong> Zero-rated suppliers are VAT-registered and recover input VAT — unlike exempt suppliers who cannot.</div>
+    </div>
+    <div class="vat-items-grid" id="items-zero"></div>
+    <div style="padding:0 24px 20px">
+      <button class="toggle-btn" style="color:#3aaa6a;border-color:#a8d8b8" onclick="toggleClarif('clar-zero',this)">▸ FTA Clarifications (3)</button>
+      <div id="clar-zero" style="display:none">
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-ZERO-001</div><p class="clarif-text">Export zero-rating requires official evidence: customs export declaration, commercial invoice, bill of lading or airway bill, and evidence of exit from the UAE. FTA may request this documentation during an audit.</p></div>
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-HC-001</div><p class="clarif-text">Healthcare: Only services provided for preventive, diagnostic, or therapeutic purposes are zero-rated. Elective cosmetic procedures with no medical justification are standard-rated at 5%.</p></div>
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-EDU-001</div><p class="clarif-text">Education: Vocational training, short courses, and non-accredited programs are standard-rated at 5%. Only tuition in institutions registered with a UAE educational authority qualifies for zero-rating.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─ EXEMPT ─────────────────────────────────────────────── -->
+<div id="page-exempt" class="page">
+  <div style="background:#fff;border:1.5px solid #b8c4f0;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(44,36,22,.06);">
+    <div class="vat-header" style="background:#edf0ff;border-color:#b8c4f0;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="vat-icon-wrap" style="background:rgba(74,100,216,.12);border-color:#b8c4f0;color:#4a64d8;">◻</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <h2 class="serif" style="font-size:18px;color:#2a3a88;font-weight:700">Exempt</h2>
+            <span class="vat-rate-badge" style="color:#4a64d8;background:rgba(74,100,216,.12);border-color:#b8c4f0">N/A</span>
+          </div>
+          <div style="color:#2a3a88;font-size:10px;font-weight:700;letter-spacing:1px;opacity:.6;font-family:monospace">Article 46, Federal Decree-Law No. 8 of 2017</div>
+        </div>
+      </div>
+      <p style="color:#2a3a88;font-size:12.5px;line-height:1.8;margin:14px 0 8px;font-family:'Lora',Georgia,serif;opacity:.85">Supplies outside the VAT charging provisions. No VAT is charged but the supplier CANNOT recover input VAT on costs related to exempt supplies. Partial exemption apportionment applies where a business makes both taxable and exempt supplies.</p>
+      <div class="key-rule-box" style="background:rgba(74,100,216,.1);border-color:#b8c4f0;color:#2a3a88"><strong>Key rule:</strong> Input VAT on costs attributable to exempt supplies is IRRECOVERABLE — a permanent tax cost.</div>
+    </div>
+    <div class="vat-items-grid" id="items-exempt"></div>
+    <div style="padding:0 24px 20px">
+      <button class="toggle-btn" style="color:#4a64d8;border-color:#b8c4f0" onclick="toggleClarif('clar-exempt',this)">▸ FTA Clarifications (3)</button>
+      <div id="clar-exempt" style="display:none">
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-EX-001 — Partial Exemption</div><p class="clarif-text">A business making both taxable and exempt supplies must apply an approved input VAT apportionment method. Standard method: taxable supplies ÷ total supplies (value-based pro-rata). The calculation must be performed each tax period and reconciled at year-end.</p></div>
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-EX-002 — Mixed Buildings</div><p class="clarif-text">A landlord renting both residential (exempt) and commercial (5%) units must apportion input VAT on shared costs (building maintenance, insurance, management fees) — typically by floor area ratio.</p></div>
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-FS-001 — Islamic Finance</div><p class="clarif-text">Murabaha margin = equivalent to interest = EXEMPT. Ijarah rental on commercial property = equivalent to operating lease = STANDARD-RATED 5%. Musharaka/Mudaraba profit distributions = equivalent to dividends = OUTSIDE SCOPE.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─ OUTSIDE SCOPE ─────────────────────────────────────── -->
+<div id="page-outscope" class="page">
+  <div style="background:#fff;border:1.5px solid #d4b8f0;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(44,36,22,.06);">
+    <div class="vat-header" style="background:#f8eeff;border-color:#d4b8f0;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="vat-icon-wrap" style="background:rgba(138,74,216,.12);border-color:#d4b8f0;color:#8a4ad8;">◌</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <h2 class="serif" style="font-size:18px;color:#5a2a88;font-weight:700">Outside Scope</h2>
+            <span class="vat-rate-badge" style="color:#8a4ad8;background:rgba(138,74,216,.12);border-color:#d4b8f0">—</span>
+          </div>
+          <div style="color:#5a2a88;font-size:10px;font-weight:700;letter-spacing:1px;opacity:.6;font-family:monospace">Article 1 &amp; 3, Federal Decree-Law No. 8 of 2017</div>
+        </div>
+      </div>
+      <p style="color:#5a2a88;font-size:12.5px;line-height:1.8;margin:14px 0 8px;font-family:'Lora',Georgia,serif;opacity:.85">Transactions that fall entirely outside the UAE VAT system. No VAT is charged, no input VAT recovery arises, and no reporting obligation exists. Distinct from exempt supplies — outside scope transactions are not supplies for VAT purposes at all.</p>
+      <div class="key-rule-box" style="background:rgba(138,74,216,.1);border-color:#d4b8f0;color:#5a2a88"><strong>Key rule:</strong> Outside scope ≠ exempt. No VAT obligation exists, but input VAT on related costs is generally non-recoverable.</div>
+    </div>
+    <div class="vat-items-grid" id="items-outscope"></div>
+    <div style="padding:0 24px 20px">
+      <button class="toggle-btn" style="color:#8a4ad8;border-color:#d4b8f0" onclick="toggleClarif('clar-outscope',this)">▸ FTA Clarifications (3)</button>
+      <div id="clar-outscope" style="display:none">
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-OS-001 — TOGC</div><p class="clarif-text">For TOGC to be outside scope: (1) assets must constitute a business capable of independent operation; (2) both parties must be VAT-registered at transfer date; (3) acquirer must intend to continue the business. A property portfolio sale with no operational business is NOT a TOGC.</p></div>
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-OS-002 — Government</div><p class="clarif-text">Government bodies acting in their sovereign capacity are outside scope. However, where they compete with private sector (government-owned hotels, postal services with commercial elements), those activities are subject to VAT.</p></div>
+        <div class="clarif-block"><div class="clarif-ref">Public Clarification VAT-OS-003 — Compensation</div><p class="clarif-text">True compensation payments (damages, insurance settlements) are generally outside scope. Early termination fees may be standard-rated if they compensate the supplier for a cancelled supply.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─ REVERSE CHARGE ────────────────────────────────────── -->
+<div id="page-rcm" class="page">
+  <div class="page-header-block">
+    <div class="page-icon-wrap" style="background:#fff4e0;border-color:#f0cc88;color:#d4820a;font-size:24px;">↺</div>
+    <div>
+      <h1 class="page-title">Reverse Charge Mechanism — UAE VAT</h1>
+      <p class="page-sub">Article 48, Federal Decree-Law No. 8 of 2017 + Executive Regulations Articles 43–44</p>
+    </div>
+  </div>
+  <div style="background:#fff4e0;border:1.5px solid #f0cc88;border-radius:14px;padding:20px 22px;margin-bottom:18px">
+    <p style="color:#7a4a00;font-size:13px;line-height:1.85;margin-bottom:14px;font-family:'Lora',Georgia,serif">The Reverse Charge Mechanism (RCM) shifts the obligation to account for VAT from the non-resident supplier to the UAE-registered recipient. Instead of the foreign supplier registering in the UAE and charging VAT, the UAE business 'self-accounts' — recording both an output VAT liability and (where permitted) an input VAT recovery in the same return. The net cash effect is zero for fully taxable businesses, but it creates a real cost for partially exempt businesses.</p>
+    <div style="background:rgba(212,130,10,.1);border:1px solid #f0cc88;border-radius:8px;padding:10px 14px;font-size:11.5px;color:#7a4a00;font-family:'Lora',serif"><strong>Core principle:</strong> The recipient becomes the deemed supplier AND the deemed customer. They account for output VAT and claim input VAT in the same VAT return — net zero for fully taxable entities.</div>
+  </div>
+  <div class="card"><div class="card-inner">
+    <div class="mini-label">How the Mechanism Works — 4 Steps</div>
+    <div class="steps-grid">
+      <div class="step-item"><div class="step-num">1</div><div><div style="color:#2c2416;font-size:12.5px;font-weight:700;margin-bottom:4px">Foreign supplier invoices</div><div style="color:#6b5e4e;font-size:12px;line-height:1.7;font-family:'Lora',Georgia,serif">The overseas supplier issues an invoice without UAE VAT (they are not registered in the UAE). The invoice should ideally reference that the reverse charge applies.</div></div></div>
+      <div class="step-item"><div class="step-num">2</div><div><div style="color:#2c2416;font-size:12.5px;font-weight:700;margin-bottom:4px">UAE recipient self-assesses</div><div style="color:#6b5e4e;font-size:12px;line-height:1.7;font-family:'Lora',Georgia,serif">The UAE VAT-registered recipient calculates UAE VAT at 5% on the value of the supply and records it as Output VAT in Box 3 of the VAT return.</div></div></div>
+      <div class="step-item"><div class="step-num">3</div><div><div style="color:#2c2416;font-size:12.5px;font-weight:700;margin-bottom:4px">Input VAT recovery</div><div style="color:#6b5e4e;font-size:12px;line-height:1.7;font-family:'Lora',Georgia,serif">Simultaneously, the UAE recipient records the same amount as Input VAT in Box 9, subject to normal input VAT recovery rules. Net effect = zero for fully taxable businesses.</div></div></div>
+      <div class="step-item"><div class="step-num">4</div><div><div style="color:#2c2416;font-size:12.5px;font-weight:700;margin-bottom:4px">Partially exempt businesses</div><div style="color:#6b5e4e;font-size:12px;line-height:1.7;font-family:'Lora',Georgia,serif">For businesses that cannot recover input VAT in full (e.g. banks, insurers, mixed-use property owners), the reverse charge creates a real VAT cost equal to the irrecoverable portion.</div></div></div>
+    </div>
+  </div></div>
+
+  <div class="section-divider"><span>When RCM is Triggered</span></div>
+
+  <div id="rcm-triggers"></div>
+
+  <div class="section-divider"><span>Compliance Requirements</span></div>
+  <button class="toggle-btn" style="color:#d4820a;border-color:#f0cc88" onclick="toggleClarif('rcm-compliance',this)">▸ Show Compliance Notes (5)</button>
+  <div id="rcm-compliance" style="display:none">
+    <div class="card"><div class="card-inner">
+      <div class="useful-item"><div class="useful-item-title">VAT Return Reporting</div><div class="useful-item-detail">Output VAT under RCM: reported in Box 3 (Standard Rated — Reverse Charge). Input VAT recovery: reported in Box 9 (Input Tax — Reverse Charge). Both must appear in the same return for the tax period in which the supply is received or the import occurs.</div></div>
+      <div class="useful-item"><div class="useful-item-title">Tax Invoice Requirements</div><div class="useful-item-detail">For RCM supplies, the UAE recipient must create a self-billing document (or retain the foreign supplier's invoice). The UAE business must record: supplier name, description of supply, date, value in AED, and a statement that reverse charge VAT applies. Reference: Executive Regulation Article 59.</div></div>
+      <div class="useful-item"><div class="useful-item-title">Exchange Rate</div><div class="useful-item-detail">Where the foreign supplier invoices in a non-AED currency, VAT must be converted to AED using the UAE Central Bank exchange rate on the date the supply is received (date of invoice or date of payment, whichever is earlier for services).</div></div>
+      <div class="useful-item"><div class="useful-item-title">Partially Exempt Businesses — Real Cost</div><div class="useful-item-detail">For businesses with partial input VAT recovery (e.g. a bank with 40% recovery rate), RCM creates a real cost: 5% VAT is self-accounted as output, but only 40% is recovered as input. The irrecoverable 60% (= 3% of supply value) is a permanent tax cost to be borne by the business.</div></div>
+      <div class="useful-item"><div class="useful-item-title">When RCM Does NOT Apply</div><div class="useful-item-detail">RCM does not apply where: (1) the foreign supplier is registered for UAE VAT and charges VAT on the invoice; (2) the recipient is not registered for UAE VAT (unregistered B2C consumers — instead, the non-resident supplier may be required to register); (3) the supply is outside the scope of UAE VAT.</div></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ─ GCC OVERVIEW ──────────────────────────────────────── -->
+<div id="page-gcc_overview" class="page">
+  <h1 class="page-title">GCC VAT Framework &amp; Member State Regulations</h1>
+  <p class="page-sub">GCC Unified VAT Agreement (2016) + Individual Member State Laws</p>
+  <div style="background:#e8f8ff;border:1.5px solid #88ccf0;border-radius:14px;padding:18px 22px;margin-bottom:22px">
+    <p style="color:#0a3a6a;font-size:13px;line-height:1.85;font-family:'Lora',Georgia,serif">The GCC Unified VAT Agreement provides the overarching framework for VAT across all six GCC member states. Each state implements its own domestic VAT law, which must conform to the Agreement's principles. The Agreement establishes common rules on supply, registration, rates (minimum 5%), exempt categories, and administrative cooperation. Cross-border B2B supplies between GCC states are treated as zero-rated exports in the supplying state, with the recipient state accounting for import VAT.</p>
+  </div>
+  <div class="mini-label">Implementation Status by Country</div>
+  <div class="gcc-status-grid">
+    <div class="gcc-status-card" style="background:#f0faf4;border-color:#a8d8b8"><div class="country-flag">🇦🇪</div><div class="country-name">UAE</div><div class="status-pill"><div class="status-dot-sm" style="background:#3aaa6a"></div><span style="color:#1a6640;font-size:10px;font-weight:700">Active</span></div><div class="country-meta">Rate: <strong>5%</strong> · 1 Jan 2018</div><div class="country-auth">FTA</div></div>
+    <div class="gcc-status-card" style="background:#f0faf4;border-color:#a8d8b8"><div class="country-flag">🇸🇦</div><div class="country-name">Saudi Arabia</div><div class="status-pill"><div class="status-dot-sm" style="background:#3aaa6a"></div><span style="color:#1a6640;font-size:10px;font-weight:700">Active</span></div><div class="country-meta">Rate: <strong>15%</strong> · 1 Jan 2018</div><div class="country-auth">ZATCA</div></div>
+    <div class="gcc-status-card" style="background:#f0faf4;border-color:#a8d8b8"><div class="country-flag">🇧🇭</div><div class="country-name">Bahrain</div><div class="status-pill"><div class="status-dot-sm" style="background:#3aaa6a"></div><span style="color:#1a6640;font-size:10px;font-weight:700">Active</span></div><div class="country-meta">Rate: <strong>10%</strong> · 1 Jan 2019</div><div class="country-auth">NBR</div></div>
+    <div class="gcc-status-card" style="background:#f0faf4;border-color:#a8d8b8"><div class="country-flag">🇴🇲</div><div class="country-name">Oman</div><div class="status-pill"><div class="status-dot-sm" style="background:#3aaa6a"></div><span style="color:#1a6640;font-size:10px;font-weight:700">Active</span></div><div class="country-meta">Rate: <strong>5%</strong> · 16 Apr 2021</div><div class="country-auth">TAO</div></div>
+    <div class="gcc-status-card" style="background:#fff8e8;border-color:#f0d898"><div class="country-flag">🇰🇼</div><div class="country-name">Kuwait</div><div class="status-pill"><div class="status-dot-sm" style="background:#c89a30"></div><span style="color:#7a5a00;font-size:10px;font-weight:700">Pending</span></div><div class="country-meta">Rate: <strong>TBC (5%)</strong></div><div class="country-auth">Ministry of Finance</div></div>
+    <div class="gcc-status-card" style="background:#fff8e8;border-color:#f0d898"><div class="country-flag">🇶🇦</div><div class="country-name">Qatar</div><div class="status-pill"><div class="status-dot-sm" style="background:#c89a30"></div><span style="color:#7a5a00;font-size:10px;font-weight:700">Pending</span></div><div class="country-meta">Rate: <strong>TBC (5%)</strong></div><div class="country-auth">GTA</div></div>
+  </div>
+
+  <div class="section-divider"><span>GCC Unified VAT Agreement — Key Articles</span></div>
+  <div class="card" style="border-top:3px solid #1a7ab8">
+    <div class="card-inner">
+      <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Article 2 — Scope</span><span class="article-chevron">▸</span></div><p class="article-text">VAT applies to all taxable supplies of goods and services made in a member state, and to all imports of goods into a member state. Each member state must enact domestic VAT legislation implementing these provisions.</p></div>
+      <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Article 4 — Standard Rate Minimum</span><span class="article-chevron">▸</span></div><p class="article-text">The standard VAT rate must not be less than 5%. Member states may apply a higher rate in their domestic law (as Saudi Arabia has done at 15% and Bahrain at 10%). There is no requirement for uniformity above the 5% minimum.</p></div>
+      <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Article 7 — Zero-Rated Supplies</span><span class="article-chevron">▸</span></div><p class="article-text">Member states must zero-rate: exports of goods outside the GCC; international transport services; investment in qualifying precious metals; new residential real estate (first supply); healthcare and educational services (as defined). States may extend zero-rating beyond these minimum categories.</p></div>
+      <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Article 8 — Exempt Supplies</span><span class="article-chevron">▸</span></div><p class="article-text">Member states must exempt: financial services (margin-based); residential real estate (subsequent supplies); bare land; local passenger transport. States may narrow the scope of exemption in certain cases but may not impose VAT on these categories.</p></div>
+      <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Article 25 — Cross-Border Supplies within GCC</span><span class="article-chevron">▸</span></div><p class="article-text">Supplies of goods between registered businesses in different GCC member states: treated as exports (zero-rated) in the supplier's state; the recipient accounts for VAT as an import in their state. Unified GCC customs territory rules apply to goods movement.</p></div>
+      <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Article 30 — Administrative Cooperation</span><span class="article-chevron">▸</span></div><p class="article-text">Member states must share tax information with one another to prevent abuse of cross-border zero-rating. A registered business in UAE cannot zero-rate a supply to a GCC recipient unless it obtains the recipient's valid VAT registration number in their home country.</p></div>
+    </div>
+  </div>
+
+  <div class="section-divider"><span>Cross-Border VAT: UAE ↔ GCC</span></div>
+  <p style="color:#6b5e4e;font-size:12.5px;line-height:1.8;margin:0 0 16px;font-family:'Lora',Georgia,serif">The treatment of supplies between UAE businesses and businesses in other GCC states is one of the most complex areas of UAE VAT. Practical application requires careful analysis as not all states have implemented VAT.</p>
+  <div id="cross-border-rules"></div>
+</div>
+
+<!-- ─ GCC COUNTRY PAGES ─────────────────────────────────── -->
+<div id="page-gcc_ksa" class="page">
+  <div class="page-header-block"><div class="page-icon-wrap" style="background:#e8f8ff;border-color:#88ccf0;font-size:28px;">🇸🇦</div><div><h1 class="page-title">Saudi Arabia — VAT &amp; Tax Regulations</h1><p class="page-sub">ZATCA · Standard Rate: <strong style="color:#1a7ab8">15%</strong></p></div></div>
+  <div class="biz-header-band" style="background:#e8f8ff;border:1.5px solid #88ccf0"><p class="biz-highlight" style="color:#0a3a6a">KSA raised its VAT rate from 5% to 15% in July 2020 — three times the GCC minimum. This has significant implications for UAE businesses trading with Saudi Arabia.</p><div class="biz-law-ref" style="color:#0a3a6a">KSA VAT Law — Royal Decree No. M/113 of 2017 + Implementing Regulations</div></div>
+  <div class="vat-notes-grid">
+    <div class="vat-note-card"><div class="vat-note-label">Standard Rate</div><div class="vat-note-val" style="color:#1a7ab8">15%</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Zero Rate</div><div class="vat-note-val" style="color:#3aaa6a">0%</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Reg. Threshold</div><div class="vat-note-val" style="color:#1a7ab8;font-size:11px">SAR 375,000</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">E-Invoice</div><div class="vat-note-val" style="color:#1a7ab8;font-size:11px">Mandatory (FATOORAH)</div></div>
+  </div>
+  <div class="section-divider"><span>Key Tax Provisions</span></div>
+  <div class="card" style="border-top:3px solid #1a7ab8"><div class="card-inner">
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Rate Increase (July 2020)</span><span class="article-chevron">▸</span></div><p class="article-text">KSA increased its standard VAT rate from 5% to 15% under Royal Order No. A/638 of 2020. The increase was permanent, implemented to address fiscal deficits arising from the COVID-19 pandemic and lower oil prices. Transition rules applied for contracts entered into before the announcement.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">E-Invoicing (FATOORAH) — Phase 1 &amp; 2</span><span class="article-chevron">▸</span></div><p class="article-text">ZATCA introduced mandatory e-invoicing in two phases. Phase 1 (December 2021): all VAT-registered businesses must generate and store invoices electronically. Phase 2 (waves from January 2023): ZATCA Integration — invoices must be transmitted to ZATCA's FATOORAH platform in real-time for large taxpayers. UAE businesses with Saudi subsidiaries or branches must comply.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Real Estate VAT</span><span class="article-chevron">▸</span></div><p class="article-text">Real estate transactions in KSA are generally subject to 15% VAT (not exempt as in UAE). Residential property sales are VAT-able in KSA, though Saudi nationals benefit from a government-funded rebate scheme for first residential home purchases. Commercial real estate is fully standard-rated.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Zero-Rated Exports to UAE</span><span class="article-chevron">▸</span></div><p class="article-text">Goods exported from KSA to UAE are zero-rated in KSA, provided the exporter holds evidence of export. The UAE importer accounts for import VAT at 5% (UAE rate) upon entry into the UAE. The different rates (15% vs 5%) mean that goods produced in KSA and sold to UAE attract only 5% VAT on the UAE side — a significant planning consideration.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#1a7ab8">Transfer Pricing &amp; Related Party Rules</span><span class="article-chevron">▸</span></div><p class="article-text">ZATCA has comprehensive transfer pricing regulations (Ministerial Resolution No. 3321 of 2020) aligned with OECD guidelines. Mandatory disclosure of related-party transactions in annual tax returns. Master File, Local File, and CbCR requirements mirror UAE CT requirements. UAE-based MNEs with Saudi subsidiaries face dual TP compliance obligations.</p></div>
+  </div></div>
+</div>
+
+<div id="page-gcc_bahrain" class="page">
+  <div class="page-header-block"><div class="page-icon-wrap" style="background:#feeeff;border-color:#e8a8d8;font-size:28px;">🇧🇭</div><div><h1 class="page-title">Bahrain — VAT &amp; Tax Regulations</h1><p class="page-sub">NBR · Standard Rate: <strong style="color:#aa3a8a">10%</strong></p></div></div>
+  <div class="biz-header-band" style="background:#feeeff;border:1.5px solid #e8a8d8"><p class="biz-highlight" style="color:#6a0a5a">Bahrain raised its standard VAT rate from 5% to 10% in January 2022. Oil &amp; gas sector remains zero-rated. Unique treatment for financial services.</p><div class="biz-law-ref" style="color:#6a0a5a">Bahrain VAT Law — Legislative Decree No. 48 of 2018 + Executive Regulations (Resolution No. 12 of 2018)</div></div>
+  <div class="vat-notes-grid">
+    <div class="vat-note-card"><div class="vat-note-label">Standard Rate</div><div class="vat-note-val" style="color:#aa3a8a">10%</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Zero Rate</div><div class="vat-note-val" style="color:#3aaa6a">0%</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Reg. Threshold</div><div class="vat-note-val" style="color:#aa3a8a;font-size:11px">BHD 37,500</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">E-Invoice</div><div class="vat-note-val" style="color:#aa3a8a;font-size:11px">In development</div></div>
+  </div>
+  <div class="section-divider"><span>Key Tax Provisions</span></div>
+  <div class="card" style="border-top:3px solid #aa3a8a"><div class="card-inner">
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a8a">Rate Increase (January 2022)</span><span class="article-chevron">▸</span></div><p class="article-text">Bahrain doubled its VAT rate from 5% to 10% effective 1 January 2022 under Decree-Law No. 33 of 2021. UAE businesses exporting to Bahrain should note that the Bahraini recipient's import VAT will be 10%, not 5%.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a8a">Oil &amp; Gas — Zero-Rated</span><span class="article-chevron">▸</span></div><p class="article-text">Bahrain zero-rates supplies of oil, gas, and related petroleum products — a broader zero-rating than under the GCC Agreement minimum. Downstream activities (refining services, petrochemical processing) are also zero-rated where the output is oil or gas.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a8a">Financial Services</span><span class="article-chevron">▸</span></div><p class="article-text">Bahrain has implemented a broader financial services exemption than most GCC states, reflecting Bahrain's position as a financial hub. Most financial services are exempt, with fee-based services subject to 10% VAT. Islamic finance follows substance-equivalence treatment similar to the UAE.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a8a">Tourism &amp; Hospitality</span><span class="article-chevron">▸</span></div><p class="article-text">Hotel accommodation and tourism services are standard-rated at 10% in Bahrain. This creates a notable competitive difference versus the UAE (5%), potentially affecting conference, exhibition, and tourism traffic between the two countries.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a8a">NBR Registration &amp; Filing</span><span class="article-chevron">▸</span></div><p class="article-text">Registration threshold: BHD 37,500 mandatory; BHD 18,750 voluntary. VAT returns are due monthly for large taxpayers and quarterly for others, within one month of period end. The NBR has a well-established online portal (e-Services) for filing and payment.</p></div>
+  </div></div>
+</div>
+
+<div id="page-gcc_oman" class="page">
+  <div class="page-header-block"><div class="page-icon-wrap" style="background:#fff0ee;border-color:#f0b8b0;font-size:28px;">🇴🇲</div><div><h1 class="page-title">Oman — VAT &amp; Tax Regulations</h1><p class="page-sub">TAO · Standard Rate: <strong style="color:#aa3a3a">5%</strong></p></div></div>
+  <div class="biz-header-band" style="background:#fff0ee;border:1.5px solid #f0b8b0"><p class="biz-highlight" style="color:#6a1a1a">Oman was the last GCC state to implement VAT (April 2021). Its law closely mirrors the UAE's, maintaining the 5% rate. Key differences exist in healthcare and education exemption scope.</p><div class="biz-law-ref" style="color:#6a1a1a">Oman VAT Law — Royal Decree No. 121 of 2020 + Oman VAT Executive Regulations</div></div>
+  <div class="vat-notes-grid">
+    <div class="vat-note-card"><div class="vat-note-label">Standard Rate</div><div class="vat-note-val" style="color:#aa3a3a">5%</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Zero Rate</div><div class="vat-note-val" style="color:#3aaa6a">0%</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Reg. Threshold</div><div class="vat-note-val" style="color:#aa3a3a;font-size:11px">OMR 38,500</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Return Frequency</div><div class="vat-note-val" style="color:#aa3a3a;font-size:11px">Quarterly</div></div>
+  </div>
+  <div class="section-divider"><span>Key Tax Provisions</span></div>
+  <div class="card" style="border-top:3px solid #aa3a3a"><div class="card-inner">
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a3a">Implementation &amp; Phased Registration</span><span class="article-chevron">▸</span></div><p class="article-text">Oman implemented VAT on 16 April 2021 in phases: large businesses first (mandatory registration by 1 February 2021), then medium (1 April 2021), then small businesses (1 July 2021). Businesses below OMR 38,500 annual revenue may apply for voluntary registration.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a3a">Healthcare &amp; Education</span><span class="article-chevron">▸</span></div><p class="article-text">Oman zero-rates a broader range of healthcare and education supplies than the minimum required by the GCC Agreement. Private school tuition, private hospital services, and pharmaceuticals are zero-rated. This is broadly aligned with the UAE's treatment.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a3a">Financial Services</span><span class="article-chevron">▸</span></div><p class="article-text">Financial services in Oman follow the GCC Agreement minimum: margin-based services (interest, insurance premiums) are exempt; fee-based services are standard-rated at 5%. The Central Bank of Oman has issued guidance on Islamic finance treatment — equivalent approach to the UAE.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a3a">Oil &amp; Gas</span><span class="article-chevron">▸</span></div><p class="article-text">Supplies related to oil and gas exploration and production are zero-rated in Oman, reflecting the sector's economic importance. Downstream supplies to consumers are standard-rated (petrol and diesel at 5%), unlike Bahrain's broader zero-rating.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#aa3a3a">Digital Economy &amp; E-Commerce</span><span class="article-chevron">▸</span></div><p class="article-text">Oman's VAT law includes provisions for electronically supplied services from non-resident providers (reverse charge for B2B; non-resident registration for B2C) substantially identical to the UAE's framework. Non-resident simplified registration is available.</p></div>
+  </div></div>
+</div>
+
+<div id="page-gcc_kw_qa" class="page">
+  <div class="page-header-block"><div style="font-size:32px;margin-right:4px">🇰🇼 🇶🇦</div><div><h1 class="page-title">Kuwait &amp; Qatar — Pending VAT Implementation</h1><p class="page-sub">VAT framework not yet enacted as of 2024</p></div></div>
+  <div class="biz-header-band" style="background:#efffee;border:1.5px solid #a8e0a8"><p class="biz-highlight" style="color:#1a5a0a">Kuwait and Qatar have not yet implemented VAT despite being signatories to the GCC Unified VAT Agreement. Both are monitoring regional developments.</p></div>
+  <div class="vat-notes-grid">
+    <div class="vat-note-card"><div class="vat-note-label">Kuwait Rate</div><div class="vat-note-val" style="color:#3a7a3a;font-size:11px">Not implemented</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Qatar Rate</div><div class="vat-note-val" style="color:#3a7a3a;font-size:11px">Not implemented</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Expected Rate</div><div class="vat-note-val" style="color:#3a7a3a">5%</div></div>
+    <div class="vat-note-card"><div class="vat-note-label">Timeline</div><div class="vat-note-val" style="color:#3a7a3a;font-size:11px">Post-2025 (est.)</div></div>
+  </div>
+  <div class="section-divider"><span>Status &amp; Impact</span></div>
+  <div class="card" style="border-top:3px solid #3a7a3a"><div class="card-inner">
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#3a7a3a">Kuwait — Status (2024)</span><span class="article-chevron">▸</span></div><p class="article-text">Kuwait has repeatedly delayed VAT implementation. As of 2024, no domestic VAT law has been enacted. The Kuwait government has noted VAT remains under consideration, but political consensus has been difficult to achieve. UAE businesses should not assume reciprocal VAT treatment for supplies to Kuwait.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#3a7a3a">Qatar — Status (2024)</span><span class="article-chevron">▸</span></div><p class="article-text">Qatar has also not implemented VAT. The General Tax Authority (GTA) was established in preparation, but no VAT law has been passed. Qatar's hosting of major sporting and infrastructure events has made large-scale VAT introduction politically sensitive. Implementation is expected post-2025 but no confirmed date exists.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#3a7a3a">Impact on UAE Businesses</span><span class="article-chevron">▸</span></div><p class="article-text">When UAE businesses export goods or services to Kuwait or Qatar: since those states have no VAT, there is no recipient-side VAT. UAE exports are zero-rated on departure (subject to export evidence). No cross-border RCM applies for the Kuwait/Qatar recipient. The absence of VAT in these markets may affect pricing and competitiveness of UAE businesses.</p></div>
+    <div class="article-block" onclick="toggleArticle(this)"><div class="article-ref-row"><span class="article-ref" style="color:#3a7a3a">GCC Agreement Compliance Deadline</span><span class="article-chevron">▸</span></div><p class="article-text">Under the GCC Unified VAT Agreement, all member states were expected to implement VAT by 2018. Kuwait and Qatar are technically in breach of the Agreement timeline. However, the Agreement does not specify formal sanctions for non-implementation, and diplomatic considerations have prevailed over enforcement.</p></div>
+  </div></div>
+</div>
+
+<!-- ─ BUSINESS NATURE PAGES ─────────────────────────────── -->
+<div id="page-biz_fz" class="page"><div id="biz-fz-content"></div></div>
+<div id="page-biz_sme" class="page"><div id="biz-sme-content"></div></div>
+<div id="page-biz_mne" class="page"><div id="biz-mne-content"></div></div>
+<div id="page-biz_re" class="page"><div id="biz-re-content"></div></div>
+<div id="page-biz_fin" class="page"><div id="biz-fin-content"></div></div>
+<div id="page-biz_pro" class="page"><div id="biz-pro-content"></div></div>
+<div id="page-biz_ec" class="page"><div id="biz-ec-content"></div></div>
+<div id="page-biz_np" class="page"><div id="biz-np-content"></div></div>
+
+<!-- ─ USEFUL INFO PAGES ─────────────────────────────────── -->
+<div id="page-info_reg" class="page"><div id="info-reg-content"></div></div>
+<div id="page-info_inv" class="page"><div id="info-inv-content"></div></div>
+<div id="page-info_fil" class="page"><div id="info-fil-content"></div></div>
+<div id="page-info_inv2" class="page"><div id="info-inv2-content"></div></div>
+<div id="page-info_ct" class="page"><div id="info-ct-content"></div></div>
+<div id="page-info_pen" class="page"><div id="info-pen-content"></div></div>
+
+</div><!-- end #main -->
+
+<script>
+// ── Page navigation ────────────────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (btn) btn.classList.add('active');
+  document.getElementById('main').scrollTop = 0;
+}
+
+// ── Search filter ──────────────────────────────────────────────────────────
+function filterNav(q) {
+  const lower = q.toLowerCase();
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    const label = btn.querySelector('.nav-label').textContent.toLowerCase();
+    btn.style.display = (!q || label.includes(lower)) ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-section-label').forEach(label => {
+    label.style.display = q ? 'none' : '';
+  });
+}
+
+// ── Collapsible helpers ────────────────────────────────────────────────────
+function toggleArticle(el) {
+  el.classList.toggle('open');
+  const chev = el.querySelector('.article-chevron');
+  if (chev) chev.textContent = el.classList.contains('open') ? '▾' : '▸';
+}
+function toggleClarif(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  btn.textContent = (open ? '▸ ' : '▾ ') + btn.textContent.replace(/^[▸▾]\s/, '');
+}
+function toggleExpand(toggleBtn, expandId) {
+  const el = document.getElementById(expandId);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  toggleBtn.textContent = open ? '+' : '−';
+  toggleBtn.classList.toggle('open', !open);
+}
+function toggleSupply(btn) {
+  const ex = btn.parentElement.querySelector('.supply-examples');
+  const chev = btn.querySelector('.supply-chev');
+  if (!ex) return;
+  const open = ex.classList.contains('open');
+  ex.classList.toggle('open', !open);
+  if (chev) chev.textContent = open ? '▸' : '▾';
+}
+function toggleTrigger(btn) {
+  const card = btn.closest('.trigger-card');
+  const exp = card.querySelector('.trigger-expand');
+  const open = exp.classList.contains('open');
+  exp.classList.toggle('open', !open);
+  btn.querySelector('.trigger-chev').textContent = open ? '+' : '−';
+}
+function toggleCB(btn) {
+  const card = btn.closest('.cross-border-card');
+  const exp = card.querySelector('.cb-expand');
+  const open = exp.classList.contains('open');
+  exp.classList.toggle('open', !open);
+  btn.querySelector('.cb-chev').textContent = open ? '+' : '−';
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
+const SUPPLY_ITEMS = {
+  standard: [
+    {cat:"Commercial Property", ex:["Sale of offices, retail units, warehouses","Lease of commercial real estate","Hotel accommodation","Serviced offices"]},
+    {cat:"Food & Hospitality", ex:["Restaurant meals and café beverages","Catering services","Hotel food and beverage","Ready-to-eat food in supermarkets"]},
+    {cat:"Professional Services", ex:["Legal advisory fees","Accounting and audit fees","Management consulting","IT services and software development","Marketing and advertising"]},
+    {cat:"Telecommunications", ex:["Mobile and internet services","Landline services","Cable and satellite TV subscriptions","Data plans"]},
+    {cat:"Utilities", ex:["Electricity (above free units)","Water services (above free units)","District cooling"]},
+    {cat:"Motor Vehicles", ex:["New and used cars (sale)","Car rentals","Spare parts and servicing","Petrol and diesel fuel"]},
+    {cat:"Retail & Consumer Goods", ex:["Electronics and appliances","Clothing and footwear","Furniture and home goods","Cosmetics and personal care","Toys and sporting goods"]},
+    {cat:"Entertainment & Leisure", ex:["Cinema tickets","Theme parks and attractions","Gym memberships","Sports events","Concerts and shows"]},
+    {cat:"Construction", ex:["Construction services","Fit-out and renovation","Engineering services","Architectural fees"]},
+  ],
+  zero: [
+    {cat:"Exports of Goods", ex:["Direct exports outside UAE and GCC","Goods dispatched to a designated zone","Goods transported by the supplier to a foreign recipient"]},
+    {cat:"International Services", ex:["Services to a non-UAE-resident not present in UAE","Telecoms services to foreign recipients","Insurance services to overseas clients"]},
+    {cat:"International Transport", ex:["International air passenger transport","International sea freight","International road and rail transport","Related ancillary services"]},
+    {cat:"Healthcare", ex:["Preventive and curative healthcare services","Medical consultations and diagnoses","Hospital and clinic services","Medicines and medical equipment (approved list)","Dental treatment (therapeutic)"]},
+    {cat:"Education", ex:["Pre-primary, primary, secondary school tuition","University and higher education tuition","Related educational materials supplied by institutions"]},
+    {cat:"First Supply of New Residential", ex:["First sale of newly constructed residential building (within 3 years of completion)","First long-term lease of newly constructed residential building"]},
+    {cat:"Investment Precious Metals", ex:["Investment gold (99%+ purity)","Investment silver (99%+)","Investment platinum (99%+)","Qualifying coins and bars"]},
+    {cat:"Oil, Gas & Hydrocarbons", ex:["Supply of crude oil and natural gas","Refined petroleum products for export","Hydrocarbons supplied to qualifying entities"]},
+  ],
+  exempt: [
+    {cat:"Residential Property", ex:["Sale of residential buildings (other than first supply within 3 years)","Long-term lease/rental of residential units","Bare land sale and lease","Supply after the 3-year zero-rated period"]},
+    {cat:"Financial Services (Margin-Based)", ex:["Interest income on loans and advances","FX exchange (on the spread/margin)","Provision of credit facilities","Operating current/deposit/savings accounts","Life and general insurance premiums","Reinsurance premiums"]},
+    {cat:"Local Passenger Transport", ex:["Metro, tram, and bus services within UAE","Licensed taxis and rideshare (within UAE)","Water taxis and abra (local ferry)","School bus services"]},
+    {cat:"Bare Land", ex:["Sale of undeveloped bare land","Lease of bare land","Note: developed land with infrastructure may differ"]},
+  ],
+  outscope: [
+    {cat:"Non-Business Activities", ex:["Salary and employment income","Dividend income (non-business investor)","Gifts with no commercial consideration","Hobbies and personal activities"]},
+    {cat:"Supplies Made Outside UAE", ex:["Goods physically located and sold outside UAE","Services where both supplier and recipient are outside UAE","Imported services subject to RCM (recipient accounts for VAT)"]},
+    {cat:"Transfers of Going Concerns", ex:["Transfer of a business as a going concern to another VAT-registered person","Both parties must be VAT-registered","Assets must form an independently operating business"]},
+    {cat:"Statutory Government Fees", ex:["UAE government fees in exercise of sovereign authority","Traffic fines, court fees, visa fees, trade licence fees","Note: commercial government services ARE subject to VAT"]},
+    {cat:"Intra-Group (VAT Group)", ex:["Supplies between FTA-approved VAT Group members are disregarded","The VAT Group acts as a single taxable person","Cross-charges within the group do not attract VAT"]},
+  ],
+};
+
+const DOTS = {standard:"#e8803a", zero:"#3aaa6a", exempt:"#4a64d8", outscope:"#8a4ad8"};
+
+function buildSupplyItems(catId, containerId) {
+  const items = SUPPLY_ITEMS[catId];
+  const dot = DOTS[catId];
+  const container = document.getElementById(containerId);
+  if (!container || !items) return;
+  container.innerHTML = items.map((item, i) => `
+    <div class="supply-item">
+      <button class="supply-item-btn" onclick="toggleSupply(this)">
+        <div style="display:flex;align-items:center">
+          <div class="supply-dot" style="background:${dot}"></div>
+          <span class="supply-cat-name">${item.cat}</span>
+        </div>
+        <span class="supply-chev">▸</span>
+      </button>
+      <div class="supply-examples">
+        ${item.ex.map(e => `<div class="supply-example">• ${e}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── RCM Triggers ───────────────────────────────────────────────────────────
+const RCM_TRIGGERS = [
+  {
+    title:"Imported Services from Non-Resident Suppliers",
+    law:"Article 48(1), UAE VAT Law",
+    desc:"Any service received by a UAE-registered business from a non-resident supplier (who has not registered for UAE VAT) is subject to reverse charge VAT. This is the most common RCM trigger.",
+    examples:["Management fees from a foreign parent company","IT software licences from a US tech company","Legal advisory from a UK law firm","Consulting services from a Singapore-based advisor","Royalties for use of intellectual property","Cloud computing / SaaS subscriptions (e.g. Microsoft, Salesforce, AWS)","International advertising services (e.g. Google Ads, Meta Ads charged outside UAE)"],
+    cRef:"Public Clarification VAT-RCM-001",
+    cText:"The RCM applies regardless of whether the foreign supplier is registered for VAT in their home country. The determining factor is whether the supplier is registered for UAE VAT. If they are not, and the service is received in the UAE by a UAE VAT-registered person, RCM applies."
+  },
+  {
+    title:"Imported Goods (Customs Import VAT)",
+    law:"Article 48(3), UAE VAT Law + Executive Regulation",
+    desc:"VAT on goods imported into the UAE is collected at the border by UAE Customs. VAT-registered importers may defer payment through the Deferred Import VAT system — reporting import VAT on their VAT return rather than paying at point of entry.",
+    examples:["Commercial goods imported from outside the UAE","Raw materials and manufacturing inputs","Capital equipment and machinery","Consumer goods for retail sale","Goods imported through UAE free zones into mainland UAE"],
+    cRef:"FCA/FTA Deferred Import VAT",
+    cText:"UAE VAT-registered businesses importing goods for business use may apply for Deferred Import VAT status. Instead of paying import VAT to customs at the border, the VAT is deferred and declared on the periodic VAT return (Box 6 — Output VAT on imports; Box 10 — Input VAT recovery on imports). Cash flow benefit is significant for importers."
+  },
+  {
+    title:"Electronic / Digital Services from Non-Residents",
+    law:"Article 48(1) + Executive Regulation Article 37",
+    desc:"Electronic services received from non-UAE-registered foreign providers are subject to RCM for UAE VAT-registered businesses. Non-resident providers supplying to UAE consumers (B2C) must register directly for UAE VAT if above threshold.",
+    examples:["SaaS subscriptions (B2B) — e.g. Adobe, Salesforce, SAP","Cloud infrastructure (AWS, Google Cloud, Azure) invoiced outside UAE","Online training platforms and e-learning (B2B)","Streaming and digital media licences (B2B)","Domain registration and web hosting from foreign providers"],
+    cRef:"Public Clarification VAT-EC-001",
+    cText:"For B2B electronic services: if the UAE recipient is VAT-registered, RCM applies and the recipient self-accounts. For B2C electronic services: if the non-resident supplier's B2C supplies exceed AED 375,000, they must register directly for UAE VAT under the non-resident simplified registration regime and charge VAT on invoices."
+  },
+  {
+    title:"Designated Zone Supplies (Specific Scenarios)",
+    law:"Executive Regulation Articles 51–52",
+    desc:"Supplies of goods between Designated Zones and the UAE mainland can trigger RCM in certain configurations. Goods passing from a Designated Zone into free circulation in the UAE mainland are treated as imports and subject to import VAT.",
+    examples:["Goods transferred from a Designated Zone warehouse to UAE mainland customer","Services provided within a Designated Zone to a mainland UAE business","Goods manufactured in a Designated Zone and sold to UAE mainland buyers"],
+    cRef:"FTA Designated Zone VAT Guide",
+    cText:"Not all UAE Free Zones are 'Designated Zones' for VAT purposes. A Designated Zone is a specific area defined by Cabinet Decision that meets strict criteria (fenced perimeter, security, customs controls). The JAFZA, Dubai Airports Free Zone, and Khalifa Industrial Zone (KIZAD) are examples. Supplies within a Designated Zone between registered entities may be treated as outside scope."
+  },
+  {
+    title:"Real Estate — Developer to Landowner Supplies",
+    law:"Article 48(2), UAE VAT Law",
+    desc:"Where a developer performs construction services on land owned by another party under a profit-sharing or similar arrangement, RCM may apply to the supply of construction services in specific circumstances outlined by FTA guidance.",
+    examples:["Construction services performed on government-owned land under BOT arrangements","Joint development agreements where services are supplied between connected parties","Infrastructure development on Waqf (endowment) land"],
+    cRef:"FTA Real Estate VAT Guide",
+    cText:"The RCM for real estate is a less common trigger and requires careful analysis of the contractual arrangement, ownership structure, and whether the parties are connected. Professional advice is recommended before applying RCM in property development scenarios."
+  },
+];
+
+function buildRCMTriggers() {
+  const cont = document.getElementById('rcm-triggers');
+  if (!cont) return;
+  cont.innerHTML = RCM_TRIGGERS.map(t => `
+    <div class="trigger-card">
+      <button class="trigger-btn" onclick="toggleTrigger(this)">
+        <div style="flex:1">
+          <div class="trigger-law">${t.law}</div>
+          <div class="trigger-title">${t.title}</div>
+        </div>
+        <span class="trigger-chev" style="color:#c4b8a8;font-size:14px;margin-top:2px">+</span>
+      </button>
+      <div class="trigger-expand">
+        <p class="trigger-desc">${t.desc}</p>
+        <div class="mini-label">Common Examples</div>
+        <div class="examples-grid">
+          ${t.examples.map(e => `<div class="example-item"><span class="example-dot">●</span><span class="example-text">${e}</span></div>`).join('')}
+        </div>
+        <div class="clarif-block"><div class="clarif-ref">${t.cRef}</div><p class="clarif-text">${t.cText}</p></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Cross-border rules ─────────────────────────────────────────────────────
+const CB_RULES = [
+  {scenario:"UAE exports goods to KSA/Bahrain/Oman", treatment:"Zero-rated in UAE (export evidence required). Recipient in KSA/Bahrain/Oman accounts for import VAT at their domestic rate (15%, 10%, or 5% respectively). The UAE supplier must obtain the recipient's VAT registration number to apply zero-rating.", risk:"If the UAE supplier cannot obtain the recipient's TRN, the supply may be treated as standard-rated at 5% in the UAE."},
+  {scenario:"UAE imports goods from KSA/Bahrain/Oman", treatment:"KSA/Bahrain/Oman supplier zero-rates the supply as an export. UAE importer accounts for import VAT at 5% via the UAE customs process or Deferred Import VAT mechanism.", risk:"The different VAT rates (KSA 15%, Bahrain 10%, UAE 5%) mean goods produced in higher-rate GCC states are not disadvantaged on import into UAE — import VAT is at 5% regardless of origin."},
+  {scenario:"UAE provides services to GCC businesses", treatment:"B2B services: generally zero-rated as international services if recipient is outside UAE and service is not used/enjoyed in UAE. UAE supplier must verify recipient's registration status. B2C services: generally standard-rated at 5% as place of supply is UAE.", risk:"Services 'used and enjoyed' in the UAE (e.g. training held in Dubai for a Saudi company's staff) may be standard-rated even if recipient is non-UAE."},
+  {scenario:"UAE receives services from GCC businesses", treatment:"B2B: RCM applies. UAE recipient self-accounts for UAE VAT at 5%, recoverable subject to normal input VAT rules. B2C: foreign GCC supplier may need to register in UAE if supplies to UAE consumers exceed AED 375,000.", risk:"UAE businesses often overlook RCM on GCC-source services (e.g. KSA management fees, Bahrain financial advisory). This is an audit risk — missed output VAT penalties can be significant."},
+  {scenario:"Intra-GCC goods movement via UAE Free Zone", treatment:"Goods passing through a UAE Designated Zone are treated as outside the UAE for VAT. Movement from KSA to a Dubai free zone to a UAE mainland customer involves: export from KSA (zero-rated), entry to Designated Zone (outside scope), exit to mainland UAE (import, subject to UAE 5% VAT).", risk:"Using a UAE Free Zone as a hub for GCC distribution can create complex VAT positions. The 'deemed import' rules when goods exit a Designated Zone to the UAE mainland must be carefully managed."},
+];
+
+function buildCBRules() {
+  const cont = document.getElementById('cross-border-rules');
+  if (!cont) return;
+  cont.innerHTML = CB_RULES.map(r => `
+    <div class="cross-border-card">
+      <button class="cb-btn" onclick="toggleCB(this)">
+        <span class="cb-title">${r.scenario}</span>
+        <span class="cb-chev" style="color:#c4b8a8;font-size:13px">+</span>
+      </button>
+      <div class="cb-expand">
+        <div style="margin-top:12px;margin-bottom:10px">
+          <div style="font-size:9.5px;color:#1a7ab8;font-weight:800;letter-spacing:1px;font-family:monospace;margin-bottom:6px">VAT TREATMENT</div>
+          <p style="color:#6b5e4e;font-size:12.5px;line-height:1.8;font-family:'Lora',Georgia,serif">${r.treatment}</p>
+        </div>
+        <div class="risk-box">
+          <div class="risk-label">⚠ RISK / NOTE</div>
+          <p class="risk-text">${r.risk}</p>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Business natures ───────────────────────────────────────────────────────
+const BIZ_DATA = [
+  {id:'fz', label:'Free Zone Entities', icon:'◈', accent:'#c89a30', accentRgb:'200,154,48', bg:'#fff8e8', border:'#f0d898', desc:'QFZPs, Free Zone Companies, Branches in UAE Free Zones', tags:['QFZP','0% CT','Ring-Fencing','Substance'],
+    regs:[
+      {code:'Ministerial Decision No. 139 of 2023', title:'Qualifying Activities & Excluded Activities', summary:'Defines qualifying income for QFZPs. A Free Zone Person deriving qualifying income is subject to 0% Corporate Tax, provided adequate substance is maintained.',
+        articles:[
+          {ref:'Article 2 — Qualifying Activities', text:'Manufacturing/processing of goods; holding of shares and securities; ownership/exploitation of IP assets; reinsurance; fund management; wealth and investment management; treasury and financing services to related parties; financing and leasing of aircraft; logistics; and ancillary activities to any of the above.'},
+          {ref:'Article 3 — Excluded Activities', text:'Transactions with natural persons (with limited exceptions); banking activities subject to UAE regulatory oversight; insurance activities (other than reinsurance); ownership or exploitation of immovable property (other than commercial property within a Free Zone).'},
+          {ref:'Article 4 — De Minimis Rule', text:'Non-qualifying revenue must not exceed the lower of AED 5 million or 5% of total revenue. Breach causes loss of QFZP status for that period AND the following four tax periods.'},
+        ],
+        clarifications:[
+          {ref:'Public Clarification CTGFZP1', text:'A QFZP must track qualifying and non-qualifying revenues separately. If the de minimis threshold is breached, the standard 0%/9% CT rates apply to ALL income for the 5-period disqualification window.'},
+          {ref:'Public Clarification CTGFZP2 — Substance', text:'Adequate substance requires qualified full-time employees physically present in the Free Zone; commensurate assets; and operating expenditure incurred in the Free Zone. A PO box or nominal staff does not meet the requirement.'},
+        ]},
+      {code:'Ministerial Decision No. 265 of 2023', title:'Irrevocable Election to Exit Free Zone Regime', summary:'A QFZP may irrevocably elect to forgo the 0% rate and be treated as a standard Resident Person. This election is locked in for a minimum of 5 consecutive tax periods.',
+        articles:[
+          {ref:'Article 1 — Election Terms', text:'The election is irrevocable for a minimum of 5 tax periods. It cannot be reversed within this window, even if the entity subsequently qualifies for QFZP status.'},
+          {ref:'Article 2 — Effect of Election', text:'All income becomes subject to: 0% on the first AED 375,000 of taxable income; 9% on taxable income above AED 375,000. All standard CT provisions apply in full.'},
+        ],
+        clarifications:[{ref:'Advisory Note', text:'Common reasons for electing out include: compliance simplicity, avoiding substance monitoring risk, or where non-qualifying activities persistently exceed the de minimis threshold.'}]},
+    ]},
+  {id:'sme', label:'SMEs & Small Business', icon:'⬡', accent:'#2a88cc', accentRgb:'42,136,204', bg:'#e8f4ff', border:'#98c8f0', desc:'SMEs with revenue up to AED 3M, sole establishments, small corporations', tags:['Small Business Relief','AED 3M Threshold','Natural Persons'],
+    regs:[
+      {code:'Ministerial Decision No. 73 of 2023', title:'Small Business Relief — CT', summary:'Eligible Resident Persons with revenue ≤ AED 3M may elect to treat taxable income as zero. Available for tax periods ending on or before 31 December 2026.',
+        articles:[
+          {ref:'Article 2 — Eligibility', text:'Available to Resident Persons (not Free Zone Persons or MNE Group members) whose revenue does not exceed AED 3 million in the relevant and all prior tax periods ending on or before 31 December 2026. Revenue is broadly defined.'},
+          {ref:'Article 3 — Election', text:'Must be elected in the CT return for the relevant period. The election is period-by-period. A business may elect in one year and not another, provided it meets the threshold each time.'},
+          {ref:'Article 4 — Limitations', text:'Transfer pricing documentation requirements still apply. Tax losses and CT attributes CANNOT be carried forward from a period in which Small Business Relief was elected.'},
+        ],
+        clarifications:[
+          {ref:'Public Clarification CTGSB1 — Revenue Threshold', text:'Revenue includes all income: trading turnover, rental income, investment income, gains on disposals. Businesses near the threshold should monitor all income streams carefully.'},
+          {ref:'Public Clarification CTGSB2 — Natural Persons', text:'A natural person conducting business generating turnover exceeding AED 1 million becomes subject to UAE CT. May still elect Small Business Relief if total revenue remains below AED 3 million.'},
+        ]},
+      {code:'Federal Decree-Law No. 47 of 2022 — Article 21', title:'Tax Loss Carry-Forward', summary:'Tax losses may be carried forward indefinitely to offset up to 75% of taxable income in future periods.',
+        articles:[
+          {ref:'Article 21(1) — 75% Cap', text:'Maximum loss offset is limited to 75% of taxable income before offset. The remaining 25% is always taxable, preventing complete tax elimination through loss utilization alone.'},
+          {ref:'Article 21(2) — No Transfer', text:'Tax losses cannot be transferred between unrelated taxable persons. Within a Tax Group, group relief is permitted subject to Ministerial Decision conditions.'},
+        ],
+        clarifications:[{ref:'Transitional Note', text:'Losses incurred before the entity\'s first CT period generally cannot be carried forward under UAE CT unless specific transitional provisions apply.'}]},
+    ]},
+  {id:'mne', label:'Multinational Enterprises', icon:'⊕', accent:'#8844cc', accentRgb:'136,68,204', bg:'#f4e8ff', border:'#c898f0', desc:'MNE Groups, large corporations, Pillar Two entities, CbCR filers', tags:['Pillar Two','CbCR','Transfer Pricing','DMTT'],
+    regs:[
+      {code:'Federal Decree-Law No. 47 of 2022 — Articles 34–36', title:'Transfer Pricing — Arm\'s Length Principle', summary:'All transactions between Related Parties must comply with the arm\'s length standard. UAE CT Law adopts the OECD Transfer Pricing Guidelines.',
+        articles:[
+          {ref:'Article 34 — Arm\'s Length Standard', text:'Related party transactions must be priced as if conducted between independent parties in comparable circumstances. The FTA may adjust taxable income to reflect arm\'s length outcomes.'},
+          {ref:'Article 35 — TP Methods', text:'Recognised: CUP, Resale Price, Cost Plus, TNMM, Profit Split. The \'most appropriate method\' standard applies — the method producing the most reliable arm\'s length measure.'},
+          {ref:'Article 36 — Documentation Thresholds', text:'Master File and Local File required where: aggregate related party transactions exceed AED 40 million per category; or any single transaction exceeds AED 4 million. Must be prepared before the filing deadline.'},
+        ],
+        clarifications:[
+          {ref:'Ministerial Decision No. 97 of 2023', text:'TP documentation must be contemporaneous — prepared before the filing deadline, not retroactively. The FTA may impose adjustments and penalties for inadequate documentation.'},
+          {ref:'Public Clarification CTGTP1', text:'Management fees must satisfy the benefit test: genuine benefit; not duplicated; and arm\'s length amount. Pass-through costs may be recharged at cost with no mark-up if arm\'s length.'},
+        ]},
+      {code:'Pillar Two — UAE DMTT (Effective 1 Jan 2025)', title:'Global Minimum Tax — Domestic Minimum Top-Up Tax', summary:'The UAE implements a Domestic Minimum Top-Up Tax to ensure large MNE Groups (consolidated revenue ≥ €750M) pay an effective tax rate of at least 15% on UAE-source income.',
+        articles:[
+          {ref:'Status (2024–2025)', text:'UAE Ministry of Finance confirmed DMTT implementation for fiscal years beginning on or after 1 January 2025. Applies to constituent entities of MNE Groups with consolidated group revenue of at least €750 million in at least two of the four preceding fiscal years.'},
+          {ref:'Interaction with QFZP Status', text:'A QFZP subject to 0% CT on qualifying income may face Pillar Two top-up tax if its GloBE effective tax rate falls below 15%. Entities with significant IP income or passive income streams are most at risk.'},
+        ],
+        clarifications:[{ref:'MOF Statement 2023', text:'UAE entities in scope must model GloBE calculations: identify constituent entities, calculate jurisdictional ETR, compute top-up tax, and assess IIR and UTPR exposure. Substance-based income exclusions (payroll and tangible asset tests) may reduce top-up amounts.'}]},
+    ]},
+  {id:'re', label:'Real Estate', icon:'⬛', accent:'#2aaa58', accentRgb:'42,170,88', bg:'#e8ffee', border:'#98e8b0', desc:'Property developers, REITs, landlords, real estate investment entities', tags:['VAT on Property','Exempt Residential','REIT Exemption'],
+    regs:[
+      {code:'Federal Decree-Law No. 8 of 2017 — Article 46 + Executive Regulations', title:'VAT Treatment of Real Estate Supplies', summary:'Residential: generally exempt (except first supply of new builds — zero-rated). Commercial: standard-rated at 5%. Bare land: exempt.',
+        articles:[
+          {ref:'Article 46(1)(a) — Residential', text:'Sale or lease of residential buildings is exempt — except the first supply of a newly constructed residential building within 3 years of completion, which is zero-rated.'},
+          {ref:'Article 46(1)(b) — Commercial', text:'Sale and lease of commercial real estate (offices, retail, warehouses, hotels, serviced apartments) is standard-rated at 5%.'},
+          {ref:'Executive Regulation Art. 43 — Bare Land', text:'Supply of undeveloped bare land is exempt from VAT.'},
+        ],
+        clarifications:[
+          {ref:'Public Clarification VAT RE-001 — Mixed Buildings', text:'Mixed-use buildings: apportion input VAT on common costs. Default method: floor-area based apportionment. Alternative methods require FTA agreement.'},
+          {ref:'Public Clarification VAT RE-002 — Change of Use', text:'Converting property between residential and commercial use may trigger a deemed supply under the change-in-use rules, creating a VAT output obligation based on fair market value at time of change.'},
+        ]},
+    ]},
+  {id:'fin', label:'Financial Services', icon:'◎', accent:'#cc4444', accentRgb:'204,68,68', bg:'#fff0f0', border:'#f0a8a8', desc:'Banks, insurance, investment managers, exchanges, regulated financial institutions', tags:['Exempt Margin','Fee-Based 5%','Partial Exemption'],
+    regs:[
+      {code:'Executive Regulations Articles 28–30 + Article 52', title:'VAT Treatment of Financial Services', summary:'Margin-based services (interest, FX spreads) are exempt; fee-based services are standard-rated at 5%. This creates significant partial exemption challenges.',
+        articles:[
+          {ref:'Exec. Reg. Art. 28 — Exempt Financial Services', text:'Exempt: issue/transfer of equity or debt securities; provision of credit/loans (interest is exempt); operating current/deposit/savings accounts; FX exchange (on the spread); life and general insurance premiums; reinsurance; derivatives and options.'},
+          {ref:'Exec. Reg. Art. 29 — Standard-Rated Financial Services', text:'Standard-rated at 5%: advisory fees; fund management fees; arrangement fees; underwriting fees; brokerage commissions (when separately charged); credit card annual fees; safe-keeping fees; safe deposit box rentals.'},
+          {ref:'Article 52 — Partial Exemption', text:'Financial institutions making both taxable and exempt supplies must apply an approved input VAT apportionment method. Standard method: taxable supply value ÷ total supply value.'},
+        ],
+        clarifications:[{ref:'Public Clarification VATFS-001 — Islamic Finance', text:'Murabaha margin = EXEMPT (equivalent to interest). Ijarah rental on commercial property = STANDARD-RATED 5% (equivalent to operating lease). Musharaka/Mudaraba distributions = OUTSIDE SCOPE (equivalent to dividends).'}]},
+    ]},
+  {id:'pro', label:'Professional Services', icon:'◉', accent:'#b89a10', accentRgb:'184,154,16', bg:'#fffce8', border:'#f0e498', desc:'Law firms, consultancies, audit, medical, architects, licensed professionals', tags:['Standard Rated','Place of Supply','Disbursements vs Recharges'],
+    regs:[
+      {code:'Federal Decree-Law No. 8 of 2017 — Article 29 + Executive Reg. Art. 31–33', title:'VAT on Professional Services', summary:'Professional services are generally standard-rated at 5%. Cross-border B2B services may be zero-rated; disbursements paid as agent are excluded from the taxable base.',
+        articles:[
+          {ref:'Article 29 — B2B Place of Supply', text:'For B2B services, place of supply is where the recipient is established. For a UAE professional firm supplying to a non-UAE recipient not present in the UAE, the supply is potentially zero-rated as an exported service.'},
+          {ref:'Exec. Reg. Art. 31 — Zero-Rating Cross-Border', text:'Services are zero-rated when: (1) supplied to a business established outside UAE; (2) service is not used/enjoyed in UAE; (3) recipient is not a connected person. All three conditions must be met.'},
+          {ref:'Exec. Reg. Art. 33 — Disbursements vs. Recharges', text:'Disbursement (paid as agent of the client): NOT part of the taxable supply. Recharge (cost incurred by the professional in performing their own service): IS part of the taxable supply at 5%.'},
+        ],
+        clarifications:[{ref:'Public Clarification VATPS-001 — Composite Supplies', text:'Where a professional firm\'s service includes multiple elements, analyze whether it is a single composite supply (dominant element test) or a mixed supply (each element taxed separately). The FTA looks at economic reality.'}]},
+    ]},
+  {id:'ec', label:'E-Commerce & Digital', icon:'◇', accent:'#2aa4bc', accentRgb:'42,164,188', bg:'#e8feff', border:'#98e4f0', desc:'Online retailers, SaaS, app stores, digital platforms, marketplace operators', tags:['Electronic Services','Reverse Charge','Marketplace Liability'],
+    regs:[
+      {code:'Federal Decree-Law No. 8 of 2017 — Article 48 + Exec. Reg. Art. 36–38', title:'VAT on Electronically Supplied Services', summary:'Electronic services from non-resident businesses to UAE consumers are subject to UAE VAT. Marketplace operators may be deemed suppliers.',
+        articles:[
+          {ref:'Exec. Reg. Art. 36 — Electronic Services Definition', text:'Includes: website supply/hosting; software supply and updates; music/film/game downloads; online magazines; online advertising; remote IT maintenance; automated distance teaching; and marketplaces facilitating such services.'},
+          {ref:'Article 48 — Non-Resident Registration', text:'Non-resident businesses supplying electronic services to UAE consumers must register for UAE VAT if supplies exceed the mandatory registration threshold (AED 375,000). A simplified registration process is available.'},
+          {ref:'Exec. Reg. Art. 37 — Deemed Supplier Rule', text:'Where a marketplace controls key elements of the supply (sets price, collects payment, determines terms), it is treated as the supplier for VAT purposes and must account for output VAT on all facilitated transactions.'},
+        ],
+        clarifications:[
+          {ref:'Public Clarification VATEC-001 — Reverse Charge', text:'UAE VAT-registered businesses receiving electronic services from a non-registered non-resident must apply the reverse charge: self-account for output VAT at 5%, and recover as input VAT subject to normal rules.'},
+          {ref:'Public Clarification VATEC-002 — B2C Location Evidence', text:'Customer location evidence (two non-contradictory pieces required): billing address, IP address, bank country, SIM card country, or customer declaration. Platforms must capture and retain this evidence.'},
+        ]},
+    ]},
+  {id:'np', label:'Non-Profit & Government', icon:'△', accent:'#4aaa24', accentRgb:'74,170,36', bg:'#f0ffe8', border:'#b0e898', desc:'Government bodies, QPBEs, charities, Waqf, international organisations', tags:['CT Exempt','QPBE','Government Sovereign','Waqf'],
+    regs:[
+      {code:'Cabinet Decision No. 37 of 2023', title:'Qualifying Public Benefit Entities — CT Exemption', summary:'Entities established for charitable, humanitarian, religious, educational, or cultural purposes may be listed as QPBEs, granting full exemption from UAE Corporate Tax.',
+        articles:[
+          {ref:'Article 2 — QPBE Criteria', text:'Must be: (1) established under UAE law; (2) operating exclusively for qualifying public benefit; (3) non-profit (no distribution to owners/members); (4) supervised by a UAE competent authority; (5) listed in the Cabinet Decision schedule.'},
+          {ref:'Article 5 — Deductibility of Donations', text:'Donations to listed QPBEs are deductible for CT purposes, provided: the donation is genuine; not disguised remuneration; and the donor receives no benefit in return.'},
+          {ref:'Article 6 — Loss of Status', text:'A QPBE must notify the FTA within 20 business days of ceasing to meet qualifying conditions. CT applies from the date conditions are no longer met.'},
+        ],
+        clarifications:[
+          {ref:'Public Clarification — Government Entities', text:'UAE Federal and Emirate government entities are automatically exempt from CT where they act in a sovereign capacity. Commercial activities competing with private businesses are subject to standard CT.'},
+          {ref:'Public Clarification — Waqf', text:'Assets held under a valid Waqf for qualifying religious or charitable purposes are generally outside UAE CT scope. Income from commercial activities of a Waqf may be subject to CT.'},
+        ]},
+    ]},
+];
+
+function buildBizPage(biz) {
+  const totalArticles = biz.regs.reduce((s,r) => s+(r.articles?.length||0), 0);
+  const totalClarif = biz.regs.reduce((s,r) => s+(r.clarifications?.length||0), 0);
+  return `
+    <div class="page-header-block">
+      <div class="page-icon-wrap" style="background:${biz.bg};border-color:${biz.border};color:${biz.icon||biz.accent}">${biz.icon}</div>
+      <div><h1 class="page-title">${biz.label}</h1><p class="page-sub">${biz.desc}</p></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px">
+      ${biz.tags.map(t=>`<span class="tag" style="color:${biz.accent};border-color:${biz.accent}55;background:${biz.accent}14">${t}</span>`).join('')}
+    </div>
+    <div class="stats-bar" style="margin-bottom:24px">
+      <div class="stat-cell"><div class="stat-val" style="color:${biz.accent}">${biz.regs.length}</div><div class="stat-label">Regulations</div></div>
+      <div class="stat-cell"><div class="stat-val" style="color:#2a88cc">${totalArticles}</div><div class="stat-label">Articles</div></div>
+      <div class="stat-cell"><div class="stat-val" style="color:#3aaa6a">${totalClarif}</div><div class="stat-label">Clarifications</div></div>
+    </div>
+    ${biz.regs.map((reg,ri) => buildRegCard(reg, biz.accent, biz.id+'_'+ri)).join('')}
+    <div class="disclaimer"><strong style="color:#6b5e4e">Disclaimer:</strong> For informational purposes only. Verify against latest FTA publications at <span style="color:${biz.accent}">tax.gov.ae</span>. Consult a qualified UAE tax advisor for specific situations.</div>
+  `;
+}
+
+function buildRegCard(reg, accent, uid) {
+  const expandId = 'expand_'+uid;
+  const arts = (reg.articles||[]).map(a => `
+    <div class="article-block" onclick="toggleArticle(this)">
+      <div class="article-ref-row"><span class="article-ref" style="color:${accent}">${a.ref}</span><span class="article-chevron">▸</span></div>
+      <p class="article-text">${a.text}</p>
+    </div>`).join('');
+  const clarifs = (reg.clarifications||[]).map(c => `
+    <div class="clarif-block"><div class="clarif-ref">${c.ref}</div><p class="clarif-text">${c.text}</p></div>`).join('');
+  return `
+    <div class="card" style="border-top:3px solid ${accent}">
+      <div class="card-inner" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1"><div class="card-code" style="color:${accent}">${reg.code}</div><div class="card-title">${reg.title}</div><p class="card-summary">${reg.summary}</p></div>
+        <button class="card-toggle" id="btn_${expandId}" onclick="toggleExpand(this,'${expandId}')">+</button>
+      </div>
+      <div class="card-expand" id="${expandId}" style="display:none">
+        ${arts ? `<div class="articles-section"><div class="mini-label">Articles & Provisions</div>${arts}</div>` : ''}
+        ${clarifs ? `<div class="clarif-section"><div class="mini-label">FTA Public Clarifications</div>${clarifs}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+// ── Useful info ────────────────────────────────────────────────────────────
+const USEFUL_DATA = [
+  {id:'reg', label:'VAT Registration', icon:'⊟', color:'#3aaa6a', items:[
+    {title:'Mandatory Registration Threshold', detail:'AED 375,000 in taxable supplies or imports in any 12-month period. Must register within 30 days of exceeding the threshold.'},
+    {title:'Voluntary Registration Threshold', detail:'AED 187,500 in taxable supplies or taxable expenses. Allows registration below the mandatory threshold — useful for input VAT recovery.'},
+    {title:'Non-Resident Registration', detail:'Non-residents making taxable supplies in the UAE must register regardless of value (no threshold applies). A simplified process is available for digital service providers.'},
+    {title:'VAT Group Registration', detail:'Two or more related entities (50%+ common ownership) may apply to be treated as a single taxable person. Intra-group supplies between group members are disregarded for VAT.'},
+  ]},
+  {id:'inv', label:'Tax Invoice Requirements', icon:'◈', color:'#2a88cc', items:[
+    {title:'Mandatory Fields — Full Tax Invoice', detail:"Word 'Tax Invoice'; supplier name, address, TRN; recipient name and address (B2B); sequential invoice number; date of supply; date of issue; description; quantity; unit price; discount (if any); tax rate applied; tax amount in AED; gross amount payable in AED."},
+    {title:'Simplified Tax Invoice', detail:'Permitted for supplies not exceeding AED 10,000 to unregistered persons. Must include: supplier name, TRN, date, description, amount payable, and tax charged or statement that price includes tax.'},
+    {title:'Currency', detail:'VAT amounts must be expressed in AED. Foreign currency invoices must state the AED equivalent using the UAE Central Bank rate at the date of supply.'},
+    {title:'Retention Period', detail:'Tax invoices, credit notes, debit notes, and supporting records must be retained for 5 years (real estate: 15 years).'},
+  ]},
+  {id:'fil', label:'Filing & Payment', icon:'◯', color:'#8844cc', items:[
+    {title:'Standard Filing Frequency', detail:'Quarterly VAT returns (most businesses). Return and payment are due within 28 days of the end of each quarter.'},
+    {title:'Monthly Filing Frequency', detail:'Businesses with annual taxable supplies exceeding AED 150 million must file monthly. Monthly filers pay within 28 days of month-end.'},
+    {title:'Annual Filing (Voluntary)', detail:'Businesses with taxable supplies below AED 150 million may, with FTA approval, elect to file annually. Annual returns are due within 28 days of the tax year-end.'},
+    {title:'Late Filing Penalties', detail:'AED 1,000 for first late filing within 12 months; AED 2,000 for each subsequent late filing within 12 months. Late payment: 2% immediately; additional 4% after 7 days; 1% daily thereafter up to 300% of unpaid tax.'},
+  ]},
+  {id:'inv2', label:'Input VAT Recovery', icon:'◻', color:'#cc4444', items:[
+    {title:'General Recovery Rule', detail:'Input VAT is recoverable where goods or services are used (or intended for use) in making taxable supplies. Input VAT on costs used exclusively for exempt supplies is NOT recoverable.'},
+    {title:'Blocked Input VAT (Non-Recoverable)', detail:'Motor vehicles used for personal purposes; entertainment costs (hospitality, recreation, amusement — unless core business); goods/services used for non-business purposes.'},
+    {title:'Partial Exemption', detail:'Where a business makes both taxable and exempt supplies, input VAT must be apportioned. The standard method is the value-based pro-rata. FTA may approve a special method producing a fairer recovery.'},
+    {title:'Designated Zones', detail:'Goods physically located in a UAE Designated Zone are generally treated as outside the UAE for VAT. Supplies of goods between registered entities within the same Designated Zone may be zero-rated.'},
+  ]},
+  {id:'ct', label:'CT Key Dates & Rates', icon:'⬡', color:'#b89a10', items:[
+    {title:'CT Effective Date', detail:'For financial years beginning on or after 1 June 2023. A company with a 1 January calendar year is first subject to CT for the year ended 31 December 2024.'},
+    {title:'CT Rate Structure', detail:'0% on taxable income up to AED 375,000. 9% on taxable income above AED 375,000. QFZPs: 0% on qualifying income; 9% on non-qualifying income. No withholding tax in the UAE.'},
+    {title:'CT Return Filing Deadline', detail:'The CT return must be filed within 9 months of the end of the tax period. For a 31 December year-end, the deadline is 30 September of the following year.'},
+    {title:'Advance Payments', detail:'No mandatory advance CT payment regime has been announced as of 2024. The full CT liability is due at the return filing deadline.'},
+  ]},
+  {id:'pen', label:'Penalties & Compliance', icon:'◌', color:'#cc4444', items:[
+    {title:'VAT Registration Failure', detail:'AED 20,000 for failing to register for VAT when required.'},
+    {title:'Tax Evasion', detail:'Fines of 50%–300% of unpaid tax, plus criminal prosecution in severe cases. FTA has broad powers to assess tax, impose penalties, and refer cases to the Public Prosecution.'},
+    {title:'CT Registration Failure', detail:'AED 10,000 for failing to register for CT. CT registration must be completed within the timeframe specified by the FTA — typically before the end of the first CT period.'},
+    {title:'Voluntary Disclosure', detail:'Businesses that discover errors in previously filed returns should file a Voluntary Disclosure promptly. Penalties on voluntary disclosures are generally reduced compared to FTA-initiated assessments.'},
+  ]},
+];
+
+function buildUsefulPage(info) {
+  return `
+    <h1 class="page-title">${info.label}</h1>
+    <p class="page-sub" style="margin-bottom:20px">UAE Tax Reference — Compliance &amp; Practical Guidance</p>
+    <div class="useful-card" style="border-left-color:${info.color}">
+      <button class="useful-btn" onclick="const ex=this.nextElementSibling;const open=ex.classList.contains('open');ex.classList.toggle('open',!open);this.querySelector('.useful-chev').textContent=open?'▸':'▾'">
+        <div style="display:flex;align-items:center"><span style="font-size:16px;color:${info.color}">${info.icon}</span><span class="useful-title">${info.label}</span></div>
+        <span class="useful-chev" style="color:${info.color}">▸</span>
+      </button>
+      <div class="useful-expand open">
+        ${info.items.map(item=>`<div class="useful-item"><div class="useful-item-title">${item.title}</div><div class="useful-item-detail">${item.detail}</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(function init() {
+  // VAT supply items
+  buildSupplyItems('standard','items-standard');
+  buildSupplyItems('zero','items-zero');
+  buildSupplyItems('exempt','items-exempt');
+  buildSupplyItems('outscope','items-outscope');
+  // RCM
+  buildRCMTriggers();
+  // GCC cross-border
+  buildCBRules();
+  // Business nature pages
+  BIZ_DATA.forEach(biz => {
+    const container = document.getElementById('biz-'+biz.id+'-content');
+    if (container) container.innerHTML = buildBizPage(biz);
+  });
+  // Useful info pages
+  USEFUL_DATA.forEach(info => {
+    const container = document.getElementById('info-'+info.id+'-content');
+    if (container) container.innerHTML = buildUsefulPage(info);
+  });
+  // Activate landing
+  const firstBtn = document.querySelector('.nav-btn[data-page="landing"]');
+  if (firstBtn) firstBtn.classList.add('active');
+})();
+
+// ══ AI DRAWER ═══════════════════════════════════════════════════════════════
+function openDrawer() {
+  document.getElementById('ai-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('chat-input').focus(), 350);
+}
+function closeDrawer() {
+  document.getElementById('ai-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+}
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+function askSuggestion(chip) {
+  document.getElementById('chat-input').value = chip.textContent;
+  sendMessage();
+}
+
+// ── Conversation history for multi-turn context ──────────────────────────
+const chatHistory = [];
+
+// ── System prompt: full UAE tax context ─────────────────────────────────
+const SYSTEM_PROMPT = `You are an expert UAE tax analyst assistant embedded in the UAE Tax Regulatory Library. You have deep knowledge of:
+
+UAE VAT (Federal Decree-Law No. 8 of 2017):
+- Standard Rated (5%): commercial property, hospitality, professional services, telecoms, utilities, vehicles, retail, entertainment, construction
+- Zero Rated (0%): exports, international services, international transport, healthcare, education, first supply new residential, investment precious metals, oil/gas
+- Exempt: residential property (non-first supply), financial services (margin-based like interest/FX/insurance), local passenger transport, bare land
+- Outside Scope: employment income, dividends, TOGCs, sovereign government fees, intra-VAT-group supplies
+
+Reverse Charge Mechanism (RCM) — Article 48:
+- Imported services from non-resident suppliers (management fees, IT licences, SaaS, legal advisory, royalties, Google/Meta Ads)
+- Imported goods via Deferred Import VAT (Box 6 output, Box 10 input)
+- Electronic/digital services from non-residents (B2B = RCM; B2C = non-resident must register if >AED 375K)
+- Designated Zone supplies entering UAE mainland
+- Real estate developer/landowner BOT arrangements
+- Compliance: self-billing, AED conversion at Central Bank rate, Box 3 output / Box 9 input
+
+Corporate Tax (Federal Decree-Law No. 47 of 2022):
+- 0% on first AED 375,000; 9% above
+- QFZPs: 0% on qualifying income (Min. Decision 139/2023 qualifying activities: manufacturing, holding, IP, reinsurance, fund management, treasury, aircraft financing, logistics)
+- De minimis: non-qualifying revenue ≤ lower of AED 5M or 5% total revenue
+- Small Business Relief (Min. Decision 73/2023): revenue ≤ AED 3M, available to 31 Dec 2026
+- Transfer Pricing: arm's length standard, OECD methods, Master File/Local File >AED 40M/category
+- Pillar Two DMTT: effective 1 Jan 2025, ≥€750M consolidated group revenue, 15% minimum ETR
+- CT return: 9 months after year-end
+
+GCC VAT Framework:
+- Unified VAT Agreement (2016): minimum 5% rate, common zero-rating and exemption categories
+- Saudi Arabia (ZATCA): 15% rate (raised from 5% in July 2020), FATOORAH e-invoicing mandatory, real estate VAT-able
+- Bahrain (NBR): 10% rate (raised from 5% in Jan 2022), broader oil/gas zero-rating, broader financial services exemption
+- Oman (TAO): 5% rate (implemented April 2021), phased registration, mirrors UAE closely
+- Kuwait & Qatar: not yet implemented, expected 5% post-2025
+- Cross-border: UAE exports to GCC = zero-rated (need recipient TRN); UAE receives GCC services = RCM at 5%
+
+Business-specific rules:
+- Free Zones: QFZP substance requirements (employees, assets, opex in FZ), irrevocable election (5 years) to exit regime
+- Financial Services: margin-based = exempt, fee-based (advisory, arrangement, management fees) = 5%; Islamic finance equivalence
+- Real Estate: first residential supply within 3 years = 0%; subsequent = exempt; commercial = 5%; mixed buildings = apportion by floor area
+- Professional Services: B2B export conditions (3 tests: established outside UAE, not used/enjoyed in UAE, not connected person); disbursements vs recharges
+- E-Commerce: marketplace deemed supplier rule; B2C location evidence (2 non-contradictory pieces)
+- Non-Profit: QPBE list (Cabinet Decision 37/2023), Waqf treatment, government sovereign vs commercial
+
+Registration & Compliance:
+- VAT: mandatory AED 375K, voluntary AED 187.5K; 28-day filing deadline; monthly if >AED 150M revenue
+- Late filing: AED 1,000 first, AED 2,000 subsequent; late payment 2%+4%+1% daily up to 300%
+- VAT registration failure: AED 20,000 penalty; CT registration failure: AED 10,000
+- Tax invoice: must include TRN, sequential number, description, amounts in AED, tax rate; simplified invoice for supplies ≤AED 10,000
+
+Answer style:
+- Be precise, cite the specific article, ministerial decision, or clarification number where relevant
+- Use clear structure with short paragraphs
+- If the question involves a specific business scenario, walk through the analysis step by step
+- Always note important caveats (e.g. partial exemption impact, substance requirements, de minimis risks)
+- End complex answers with a brief "Key takeaway" summary
+- Keep answers focused and professional — you are speaking to a UAE tax analyst
+- Do not make up rules not listed above; if uncertain, say so clearly and suggest consulting FTA publications`;
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
+  const q = input.value.trim();
+  if (!q) return;
+
+  // Add user message to UI
+  appendMessage('user', q);
+  chatHistory.push({ role: 'user', content: q });
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  // Show typing indicator
+  const typingId = 'typing_' + Date.now();
+  appendTyping(typingId);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: chatHistory
+      })
+    });
+
+    const data = await response.json();
+    removeTyping(typingId);
+
+    if (data.content && data.content[0]) {
+      const rawText = data.content.map(b => b.text || '').join('');
+      chatHistory.push({ role: 'assistant', content: rawText });
+      appendMessage('ai', formatAIResponse(rawText));
+    } else if (data.error) {
+      appendMessage('ai', `<em style="color:#cc4444">Error: ${data.error.message}</em>`);
+    }
+  } catch (err) {
+    removeTyping(typingId);
+    appendMessage('ai', '<em style="color:#cc4444">Connection error. Please try again.</em>');
+  }
+
+  sendBtn.disabled = false;
+  document.getElementById('chat-input').focus();
+}
+
+function formatAIResponse(text) {
+  // Convert markdown-style formatting to HTML
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:#f0eae0;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:11px">$1</code>')
+    // Article/decision references become styled cite tags
+    .replace(/(Article\s+\d+[^\s,;.]*|Ministerial Decision[^,.;]*|Cabinet Decision[^,.;]*|Art\.\s*\d+[^\s,;]*|Federal Decree-Law[^,.;]*)/g,
+      '<span class="cite-tag">$1</span>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n- /g, '<br>• ')
+    .replace(/\n(\d+)\. /g, '<br><strong>$1.</strong> ')
+    .replace(/\n/g, '<br>');
+}
+
+function appendMessage(role, html) {
+  const messages = document.getElementById('chat-messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar ' + role;
+  avatar.textContent = role === 'ai' ? 'ق' : '👤';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble ' + role;
+  bubble.innerHTML = html;
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function appendTyping(id) {
+  const messages = document.getElementById('chat-messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.id = id;
+  row.innerHTML = `
+    <div class="msg-avatar ai">ق</div>
+    <div class="msg-bubble ai" style="padding:14px 18px">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>`;
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+</script>
+
+<!-- ═══ iOS / OFFLINE FIX PATCH ══════════════════════════════════════════ -->
+<style>
+#mobile-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  background: #faf8f4; border-top: 1.5px solid #e8e2d8;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom)); z-index: 500;
+  flex-direction: row; justify-content: space-around; align-items: center;
+}
+.mnav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; cursor: pointer; padding: 6px 10px; }
+.mnav-icon { font-size: 22px; }
+.mnav-label { font-size: 9px; color: #9c8e7e; font-family: -apple-system,sans-serif; }
+.mnav-btn.active .mnav-label { color: #c89a30; font-weight: 700; }
+#apikey-modal {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(44,36,22,.55); align-items: center; justify-content: center;
+  padding: 24px;
+}
+#apikey-modal.show { display: flex; }
+.apikey-box {
+  background: #faf8f4; border-radius: 20px; padding: 28px 24px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 8px 40px rgba(44,36,22,.25);
+  font-family: -apple-system,BlinkMacSystemFont,sans-serif;
+}
+.apikey-logo { width: 48px; height: 48px; background: linear-gradient(135deg,#e0b878,#c89a30);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #fff; margin: 0 auto 16px; }
+.apikey-title { font-size: 18px; font-weight: 700; color: #2c2416; text-align: center; margin-bottom: 6px; }
+.apikey-sub { font-size: 13px; color: #9c8e7e; text-align: center; line-height: 1.5; margin-bottom: 20px; }
+.apikey-input { width: 100%; padding: 13px 14px; border: 1.5px solid #e8e2d8;
+  border-radius: 12px; font-size: 14px; color: #2c2416; background: #f4f1ec;
+  outline: none; margin-bottom: 8px; font-family: -apple-system,sans-serif; box-sizing: border-box; }
+.apikey-input:focus { border-color: #c89a30; }
+.apikey-hint { font-size: 11px; color: #c4b8a8; text-align: center; margin-bottom: 18px; line-height: 1.6; }
+.apikey-hint a { color: #c89a30; }
+.apikey-save { width: 100%; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+  background: linear-gradient(135deg,#c89a30,#e0b878); color: #fff;
+  font-size: 15px; font-weight: 700; font-family: -apple-system,sans-serif;
+  box-shadow: 0 4px 14px rgba(200,154,48,.35); }
+.apikey-skip { width: 100%; padding: 10px; border: none; background: none; cursor: pointer;
+  color: #9c8e7e; font-size: 13px; margin-top: 8px; font-family: -apple-system,sans-serif; }
+#mobile-sheet-overlay { display: none; position: fixed; inset: 0; background: rgba(44,36,22,.4); z-index: 600; }
+#mobile-sheet-overlay.show { display: block; }
+#mobile-sheet { position: fixed; bottom: -100%; left: 0; right: 0; height: 75vh;
+  background: #faf8f4; border-radius: 20px 20px 0 0; z-index: 700; overflow: hidden;
+  display: flex; flex-direction: column; transition: bottom .35s cubic-bezier(.4,0,.2,1);
+  padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+#mobile-sheet.open { bottom: 0; }
+.sheet-handle { width: 40px; height: 4px; background: #d8d0c4; border-radius: 2px;
+  margin: 10px auto 0; flex-shrink: 0; }
+.sheet-search { padding: 12px 16px; flex-shrink: 0; }
+.sheet-search input { width: 100%; padding: 10px 14px; background: #f4f1ec;
+  border: 1.5px solid #e8e2d8; border-radius: 10px; font-size: 14px;
+  color: #2c2416; outline: none; font-family: -apple-system,sans-serif; box-sizing: border-box; }
+.sheet-nav { flex: 1; overflow-y: auto; padding: 0 12px 12px; }
+@media (max-width: 680px) {
+  body { flex-direction: column; }
+  #sidebar { display: none !important; }
+  #main { padding: 20px 14px 90px !important; }
+  #mobile-nav { display: flex !important; }
+  #ai-drawer { width: 100% !important; right: -100% !important; }
+  #ai-drawer.open { right: 0 !important; }
+  .vat-items-grid { grid-template-columns: 1fr !important; }
+  .steps-grid { grid-template-columns: 1fr !important; }
+  .examples-grid { grid-template-columns: 1fr !important; }
+  .gcc-status-grid { grid-template-columns: 1fr 1fr !important; }
+  .vat-notes-grid { grid-template-columns: 1fr 1fr !important; }
+  .two-col-grid { grid-template-columns: 1fr !important; }
+  .landing-vat-grid { grid-template-columns: 1fr 1fr !important; }
+  .landing-special-grid { grid-template-columns: 1fr !important; }
+  .page-title { font-size: 20px !important; }
+  .drawer-header { padding: 16px 18px 14px !important; }
+}
+</style>
+
+<div id="apikey-modal">
+  <div class="apikey-box">
+    <div class="apikey-logo">✦</div>
+    <div class="apikey-title">Enable AI Assistant</div>
+    <div class="apikey-sub">Paste your Anthropic API key to activate the UAE Tax AI. It's saved only on this device.</div>
+    <input class="apikey-input" id="apikey-input" type="password" placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="apikey-hint">Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>Never shared — stored locally on your device only.</div>
+    <button class="apikey-save" onclick="saveApiKey()">Save &amp; Enable AI ✦</button>
+    <button class="apikey-skip" onclick="closeApiModal()">Skip — use library without AI</button>
+  </div>
+</div>
+
+<div id="mobile-nav">
+  <button class="mnav-btn active" id="mnav-home" onclick="mobileNav('home',this)">
+    <span class="mnav-icon">🏠</span><span class="mnav-label">Home</span>
+  </button>
+  <button class="mnav-btn" id="mnav-nav" onclick="mobileNav('nav',this)">
+    <span class="mnav-icon">☰</span><span class="mnav-label">Topics</span>
+  </button>
+  <button class="mnav-btn" id="mnav-ai" onclick="mobileNav('ai',this)">
+    <span class="mnav-icon">✦</span><span class="mnav-label">Ask AI</span>
+  </button>
+</div>
+
+<div id="mobile-sheet-overlay" onclick="closeMobileSheet()"></div>
+<div id="mobile-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-search"><input type="text" placeholder="Filter topics…" oninput="filterNav(this.value)"></div>
+  <div class="sheet-nav" id="sheet-nav-list"></div>
+</div>
+
+<script>
+(function(){
+  function getKey(){ try{return localStorage.getItem('uae_tax_api_key')||'';}catch(e){return window._apiKey||'';} }
+  function setKey(k){ try{localStorage.setItem('uae_tax_api_key',k);}catch(e){window._apiKey=k;} }
+  window.getApiKey=getKey; window.setApiKeyStore=setKey;
+
+  window.saveApiKey=function(){
+    var k=document.getElementById('apikey-input').value.trim();
+    if(!k||!k.startsWith('sk-')){
+      document.getElementById('apikey-input').style.borderColor='#cc4444';
+      document.getElementById('apikey-input').placeholder='Key must start with sk-…';
+      return;
+    }
+    setKey(k); closeApiModal(); _origOpenDrawer();
+  };
+  window.closeApiModal=function(){ document.getElementById('apikey-modal').classList.remove('show'); };
+  window.showApiModal=function(){
+    document.getElementById('apikey-modal').classList.add('show');
+    setTimeout(function(){document.getElementById('apikey-input').focus();},100);
+  };
+  window.resetApiKey=function(){ try{localStorage.removeItem('uae_tax_api_key');}catch(e){window._apiKey='';} showApiModal(); };
+
+  var _origOpenDrawer=window.openDrawer;
+  window.openDrawer=function(){
+    if(!getKey()){showApiModal();return;} _origOpenDrawer();
+  };
+
+  window.sendMessage=async function(){
+    var input=document.getElementById('chat-input');
+    var sendBtn=document.getElementById('send-btn');
+    var q=input.value.trim();
+    if(!q)return;
+    if(!getKey()){showApiModal();return;}
+    appendMessage('user',q);
+    chatHistory.push({role:'user',content:q});
+    input.value=''; input.style.height='auto'; sendBtn.disabled=true;
+    var tid='typing_'+Date.now(); appendTyping(tid);
+    try{
+      var r=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':getKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM_PROMPT,messages:chatHistory})
+      });
+      var d=await r.json(); removeTyping(tid);
+      if(d.content&&d.content[0]){
+        var txt=d.content.map(function(b){return b.text||'';}).join('');
+        chatHistory.push({role:'assistant',content:txt});
+        appendMessage('ai',formatAIResponse(txt));
+      } else if(d.error){
+        if(d.error.type==='authentication_error'){
+          appendMessage('ai','<em style="color:#cc4444">Invalid API key. <span style="color:#c89a30;cursor:pointer;text-decoration:underline" onclick="resetApiKey()">Update key →</span></em>');
+        } else {
+          appendMessage('ai','<em style="color:#cc4444">Error: '+d.error.message+'</em>');
+        }
+      }
+    }catch(err){
+      removeTyping(tid);
+      appendMessage('ai','<em style="color:#cc4444">Connection error. Check your internet connection.</em>');
+    }
+    sendBtn.disabled=false;
+    document.getElementById('chat-input').focus();
+  };
+
+  window.mobileNav=function(tab,btn){
+    document.querySelectorAll('.mnav-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    if(tab==='home'){closeMobileSheet();closeDrawer();showPage('landing',null);}
+    else if(tab==='nav'){closeDrawer();toggleMobileSheet();}
+    else if(tab==='ai'){closeMobileSheet();openDrawer();}
+  };
+  window.toggleMobileSheet=function(){
+    var s=document.getElementById('mobile-sheet'),o=document.getElementById('mobile-sheet-overlay');
+    if(s.classList.contains('open')){closeMobileSheet();}
+    else{
+      s.classList.add('open');o.classList.add('show');
+      var sn=document.getElementById('sheet-nav-list'),src=document.getElementById('nav-list');
+      if(sn&&src){
+        sn.innerHTML=src.innerHTML;
+        sn.querySelectorAll('.nav-btn').forEach(function(b){
+          b.addEventListener('click',function(){
+            var pg=b.getAttribute('data-page');
+            if(pg){showPage(pg,b);closeMobileSheet();}
+          });
+        });
+      }
+    }
+  };
+  window.closeMobileSheet=function(){
+    document.getElementById('mobile-sheet').classList.remove('open');
+    document.getElementById('mobile-sheet-overlay').classList.remove('show');
+  };
+
+  window.addEventListener('load',function(){
+    setTimeout(function(){
+      if(!getKey()){
+        var banner=document.createElement('div');
+        banner.style.cssText='position:fixed;bottom:66px;left:50%;transform:translateX(-50%);background:#fff8e8;border:1.5px solid #f0cc88;border-radius:12px;padding:9px 16px;font-size:12px;color:#7a5a00;z-index:400;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(200,154,48,.2);font-family:-apple-system,sans-serif;white-space:nowrap;cursor:pointer;';
+        banner.innerHTML='<span>✦</span><span>Tap to set API key &amp; enable AI</span><span style="color:#c89a30;font-weight:700">→</span>';
+        banner.onclick=function(){showApiModal();banner.remove();};
+        document.body.appendChild(banner);
+        setTimeout(function(){if(banner.parentNode)banner.remove();},7000);
+      }
+    },1800);
+    // Add gear icon to AI drawer
+    var ds=document.querySelector('.drawer-sub');
+    if(ds){var g=document.createElement('span');g.style.cssText='margin-left:8px;color:#c89a30;cursor:pointer;font-size:11px;';g.textContent='⚙ key';g.onclick=function(e){e.stopPropagation();resetApiKey();};ds.appendChild(g);}
+    // Font fallback
+    setTimeout(function(){
+      var el=document.createElement('span');
+      el.style.cssText='font-family:Lora,serif;font-size:72px;position:absolute;left:-9999px;';
+      el.textContent='mmmmmmmmmml';document.body.appendChild(el);
+      var w1=el.offsetWidth;el.style.fontFamily='serif';var w2=el.offsetWidth;
+      document.body.removeChild(el);
+      if(Math.abs(w1-w2)<2){
+        var st=document.createElement('style');
+        st.textContent='.serif,.page-title,.card-title,.msg-bubble.ai,.clarif-text,.article-text{font-family:Georgia,serif!important}';
+        document.head.appendChild(st);
+      }
+    },2500);
+  });
+})();
+</script>
+</body>
+</html>
